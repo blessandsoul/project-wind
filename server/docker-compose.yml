@@ -1,0 +1,82 @@
+# WARNING: These credentials are for LOCAL DEVELOPMENT ONLY.
+# Change all passwords and secrets before using in any shared or production environment.
+
+name: project-wind
+
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: project-wind-mysql
+    restart: unless-stopped
+    ports:
+      - '${MYSQL_PORT:-3378}:3306'
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: project_wind_db
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - project-wind-network
+    healthcheck:
+      test: ['CMD', 'mysqladmin', 'ping', '-h', 'localhost']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  phpmyadmin:
+    image: phpmyadmin:latest
+    container_name: project-wind-phpmyadmin
+    restart: unless-stopped
+    ports:
+      - '${PHPMYADMIN_PORT:-8152}:80'
+    environment:
+      PMA_HOST: mysql
+      PMA_PORT: 3306
+      MYSQL_ROOT_PASSWORD: rootpassword
+      PMA_ARBITRARY: 0
+      HIDE_PHP_VERSION: 'true'
+    volumes:
+      - ./phpmyadmin-config.php:/etc/phpmyadmin/config.user.inc.php
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      - project-wind-network
+
+  redis:
+    image: redis:7-alpine
+    container_name: project-wind-redis
+    restart: unless-stopped
+    ports:
+      - '${REDIS_PORT:-6451}:6379'
+    volumes:
+      - redis_data:/data
+    networks:
+      - project-wind-network
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis-commander:
+    image: rediscommander/redis-commander:latest
+    container_name: project-wind-redis-commander
+    restart: unless-stopped
+    ports:
+      - '${REDIS_COMMANDER_PORT:-8153}:8081'
+    environment:
+      REDIS_HOSTS: local:redis:6379
+    depends_on:
+      redis:
+        condition: service_healthy
+    networks:
+      - project-wind-network
+
+volumes:
+  mysql_data:
+  redis_data:
+
+networks:
+  project-wind-network:
+    driver: bridge

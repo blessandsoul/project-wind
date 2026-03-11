@@ -1,0 +1,214 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  USER
+  ADMIN
+}
+
+enum GenerationStatus {
+  PROCESSING
+  COMPLETED
+  FAILED
+}
+
+enum GenerationType {
+  IMAGE
+  VIDEO
+}
+
+enum CreditTransactionType {
+  PURCHASE
+  USAGE
+  REFUND
+  BONUS
+  ADMIN_ADJUSTMENT
+}
+
+model User {
+  id            String    @id @default(uuid())
+  email         String    @unique
+  password      String
+  firstName     String
+  lastName      String
+  avatarUrl     String?   // SEO-friendly path: /uploads/users/{userId}/avatar/{firstName-lastName}-avatar.webp
+  role          UserRole  @default(USER)
+  isActive      Boolean   @default(true)
+  deletedAt     DateTime?
+
+  // Account lockout
+  failedLoginAttempts Int       @default(0)
+  lockedUntil         DateTime?
+
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  creditBalance  Int       @default(0)
+
+  refreshTokens      RefreshToken[]
+  sessions           Session[]
+  blockedIps         BlockedIp[]
+  generations        Generation[]
+  creditTransactions CreditTransaction[]
+
+  // Performance indexes for high-traffic scenarios (10K-100K users/day)
+  @@index([role])           // For role-based authorization queries
+  @@index([isActive])       // For filtering active/inactive users
+  @@index([deletedAt])      // For soft delete filtering
+  @@index([email, isActive]) // Compound index for login queries
+  @@map("users")
+}
+
+model RefreshToken {
+  id        String   @id @default(uuid())
+  token     String   @unique @db.VarChar(500)
+  userId    String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Performance indexes for token operations and cleanup
+  @@index([userId])
+  @@index([token])
+  @@index([userId, expiresAt]) // Compound index for efficient token cleanup queries
+  @@index([expiresAt])         // For expired token cleanup cron jobs
+  @@map("refresh_tokens")
+}
+
+model Session {
+  id           String    @id @default(uuid())
+  userId       String
+  deviceInfo   String?   @db.VarChar(500) // User agent, device type
+  ipAddress    String?   @db.VarChar(45)  // IPv4 or IPv6
+  lastActiveAt DateTime  @default(now())
+  expiresAt    DateTime
+  createdAt    DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Performance indexes for session queries
+  @@index([userId])
+  @@index([userId, expiresAt])
+  @@index([expiresAt])         // For expired session cleanup
+  @@map("sessions")
+}
+
+model BlockedIp {
+  id        String   @id @default(uuid())
+  ip        String   @unique @db.VarChar(45)
+  reason    String?  @db.VarChar(500)
+  blockedBy String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [blockedBy], references: [id])
+
+  @@index([ip])
+  @@map("blocked_ips")
+}
+
+model Template {
+  id             String         @id @default(uuid())
+  name           String
+  slug           String         @unique
+  description    String?        @db.Text
+  category       String         @db.VarChar(100)
+  type           GenerationType @default(IMAGE)
+  promptTemplate String         @db.Text
+  providerKey    String?        @db.VarChar(50)
+  creditCost     Int            @default(1)
+  thumbnailUrl   String?
+  isActive       Boolean        @default(true)
+  sortOrder      Int            @default(0)
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+
+  generations Generation[]
+
+  @@index([category, isActive])
+  @@index([isActive, sortOrder])
+  @@index([type, isActive])
+  @@map("templates")
+}
+
+model AiModel {
+  id          String         @id @default(uuid())
+  providerKey String         @db.VarChar(50)
+  modelId     String         @db.VarChar(200)
+  name        String         @db.VarChar(255)
+  description String?        @db.Text
+  type        GenerationType @default(IMAGE)
+  creditCost  Int            @default(1)
+  isActive    Boolean        @default(true)
+  sortOrder   Int            @default(0)
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+
+  generations Generation[]
+
+  @@unique([providerKey, modelId])
+  @@index([isActive, sortOrder])
+  @@index([providerKey])
+  @@index([type, isActive])
+  @@map("ai_models")
+}
+
+model Generation {
+  id                   String           @id @default(uuid())
+  userId               String
+  templateId           String
+  aiModelId            String?
+  type                 GenerationType   @default(IMAGE)
+  status               GenerationStatus @default(PROCESSING)
+  inputImageUrl        String
+  outputImageUrl       String?
+  outputVideoUrl       String?
+  promptUsed           String           @db.Text
+  providerKey          String
+  modelId              String?          @db.VarChar(200)
+  operationId          String?          @db.VarChar(500)
+  videoDurationSeconds Int?
+  creditsCost          Int
+  processingTimeMs     Int?
+  errorMessage         String?          @db.Text
+  createdAt            DateTime         @default(now())
+  updatedAt            DateTime         @updatedAt
+
+  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  template Template  @relation(fields: [templateId], references: [id])
+  aiModel  AiModel?  @relation(fields: [aiModelId], references: [id])
+
+  @@index([userId, createdAt])
+  @@index([userId, status])
+  @@index([templateId])
+  @@index([aiModelId])
+  @@index([status])
+  @@index([operationId])
+  @@index([type, userId])
+  @@map("generations")
+}
+
+model CreditTransaction {
+  id           String                @id @default(uuid())
+  userId       String
+  amount       Int
+  type         CreditTransactionType
+  balanceAfter Int
+  referenceId  String?
+  description  String?
+  createdAt    DateTime              @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@index([userId, type])
+  @@map("credit_transactions")
+}

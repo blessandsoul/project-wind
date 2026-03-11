@@ -1,0 +1,1100 @@
+{
+  "info": {
+    "name": "Project Wind API",
+    "_postman_id": "project-wind-server-collection",
+    "description": "API collection for Project Wind.\n\nAll authenticated requests inherit Bearer Token auth from the collection root.\nLogin/Register requests auto-set tokens via test scripts.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{accessToken}}",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8000/api/v1"
+    },
+    {
+      "key": "accessToken",
+      "value": ""
+    },
+    {
+      "key": "refreshToken",
+      "value": ""
+    },
+    {
+      "key": "userId",
+      "value": ""
+    },
+    {
+      "key": "targetUserId",
+      "value": ""
+    },
+    {
+      "key": "templateId",
+      "value": ""
+    },
+    {
+      "key": "generationId",
+      "value": ""
+    },
+    {
+      "key": "aiModelId",
+      "value": ""
+    }
+  ],
+  "item": [
+    {
+      "name": "Auth",
+      "description": "Authentication endpoints. No auth required for these requests.",
+      "auth": {
+        "type": "noauth"
+      },
+      "item": [
+        {
+          "name": "Register",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"john.doe@example.com\",\n  \"password\": \"Password123\",\n  \"firstName\": \"John\",\n  \"lastName\": \"Doe\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/register",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "register"]
+            },
+            "description": "Register a new user account."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "  const res = pm.response.json();",
+                  "  if (res.data && res.data.user) {",
+                  "    pm.collectionVariables.set('userId', res.data.user.id);",
+                  "  }",
+                  "  // Tokens are set via httpOnly cookies, not in response body",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"john.doe@example.com\",\n  \"password\": \"Password123\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "login"]
+            },
+            "description": "Login with email and password. Tokens are set as httpOnly cookies."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "  const res = pm.response.json();",
+                  "  if (res.data && res.data.user) {",
+                  "    pm.collectionVariables.set('userId', res.data.user.id);",
+                  "  }",
+                  "  // Tokens are set via httpOnly cookies, not in response body",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "Refresh Token",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/auth/refresh",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "refresh"]
+            },
+            "description": "Refresh access token using the refresh_token cookie."
+          },
+          "response": []
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/auth/logout",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "logout"]
+            },
+            "description": "Logout and clear auth cookies."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Me",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/auth/me",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "me"]
+            },
+            "description": "Get the currently authenticated user."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Sessions",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/auth/sessions",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "sessions"]
+            },
+            "description": "Get all active sessions for the current user."
+          },
+          "response": []
+        },
+        {
+          "name": "Logout All Sessions",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/auth/logout-all",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "logout-all"]
+            },
+            "description": "Logout from all sessions and invalidate all refresh tokens."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Users",
+      "description": "User profile and avatar management. All requests require authentication (inherited from collection root).",
+      "item": [
+        {
+          "name": "Update Profile",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"firstName\": \"Jane\",\n  \"lastName\": \"Smith\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/users/me",
+              "host": ["{{baseUrl}}"],
+              "path": ["users", "me"]
+            },
+            "description": "Update the current user's profile. At least one field (firstName or lastName) must be provided."
+          },
+          "response": []
+        },
+        {
+          "name": "Change Password",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"currentPassword\": \"Password123\",\n  \"newPassword\": \"NewPassword456\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/users/me/password",
+              "host": ["{{baseUrl}}"],
+              "path": ["users", "me", "password"]
+            },
+            "description": "Change the current user's password. Requires current password verification. Invalidates all sessions after successful change."
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Account",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"password\": \"Password123\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/users/me",
+              "host": ["{{baseUrl}}"],
+              "path": ["users", "me"]
+            },
+            "description": "Soft-delete the current user's account. Requires password confirmation. Account data is permanently purged after 30 days."
+          },
+          "response": []
+        },
+        {
+          "name": "Upload Avatar",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "file",
+                  "type": "file",
+                  "src": "",
+                  "description": "Image file (JPEG, PNG, or WebP, max 10MB)"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/users/avatar",
+              "host": ["{{baseUrl}}"],
+              "path": ["users", "avatar"]
+            },
+            "description": "Upload or replace the current user's avatar. Accepts JPEG, PNG, or WebP. Max 10MB. Image is optimized and converted to WebP."
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Avatar",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/users/avatar",
+              "host": ["{{baseUrl}}"],
+              "path": ["users", "avatar"]
+            },
+            "description": "Delete the current user's avatar."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Avatar",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/users/{{userId}}/avatar",
+              "host": ["{{baseUrl}}"],
+              "path": ["users", "{{userId}}", "avatar"]
+            },
+            "description": "Get a user's avatar image by user ID. Public endpoint — no authentication required."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Admin",
+      "description": "Admin-only endpoints. Requires ADMIN role. Auth inherited from collection root.",
+      "item": [
+        {
+          "name": "User Management",
+          "description": "Manage users by ID. Requires ADMIN role. Set {{targetUserId}} before calling.",
+          "item": [
+            {
+              "name": "Update Profile (by ID)",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"firstName\": \"Jane\",\n  \"lastName\": \"Smith\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/users/{{targetUserId}}",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["users", "{{targetUserId}}"]
+                },
+                "description": "Update a user's profile by ID. Requires owner or admin access."
+              },
+              "response": []
+            },
+            {
+              "name": "Change Password (by ID)",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"newPassword\": \"NewPassword456\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/users/{{targetUserId}}/password",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["users", "{{targetUserId}}", "password"]
+                },
+                "description": "Change a user's password by ID. Admin: only newPassword required. Invalidates all target user sessions."
+              },
+              "response": []
+            },
+            {
+              "name": "Delete Account (by ID)",
+              "request": {
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/users/{{targetUserId}}",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["users", "{{targetUserId}}"]
+                },
+                "description": "Soft-delete a user's account by ID. No password required for admin. Invalidates all target user sessions."
+              },
+              "response": []
+            },
+            {
+              "name": "Upload Avatar (by ID)",
+              "request": {
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "formdata",
+                  "formdata": [
+                    {
+                      "key": "file",
+                      "type": "file",
+                      "src": "",
+                      "description": "Image file (JPEG, PNG, or WebP, max 10MB)"
+                    }
+                  ]
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/users/{{targetUserId}}/avatar",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["users", "{{targetUserId}}", "avatar"]
+                },
+                "description": "Upload or replace a user's avatar by ID. Requires admin access. Accepts JPEG, PNG, or WebP."
+              },
+              "response": []
+            },
+            {
+              "name": "Delete Avatar (by ID)",
+              "request": {
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/users/{{targetUserId}}/avatar",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["users", "{{targetUserId}}", "avatar"]
+                },
+                "description": "Delete a user's avatar by ID. Requires admin access."
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "List Blocked IPs",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/admin/blocked-ips",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "blocked-ips"]
+            },
+            "description": "List all blocked IP addresses. Returns permanent blocks and active auto-blocks separately."
+          },
+          "response": []
+        },
+        {
+          "name": "Block IP",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"ip\": \"1.2.3.4\",\n  \"reason\": \"Spam bot\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/admin/blocked-ips",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "blocked-ips"]
+            },
+            "description": "Permanently block an IP address. Persisted to database and cached in Redis. Blocked IPs receive 403 IP_BLOCKED on all requests. Optional reason field for audit trail."
+          },
+          "response": []
+        },
+        {
+          "name": "Unblock IP",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/admin/blocked-ips/1.2.3.4",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "blocked-ips", "1.2.3.4"]
+            },
+            "description": "Remove an IP from the permanent block list. Also removes it from auto-blocks if present."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Templates",
+      "description": "Template management. Public endpoints for listing, admin endpoints for CRUD.",
+      "item": [
+        {
+          "name": "Public",
+          "description": "Public template endpoints. No authentication required.",
+          "auth": {
+            "type": "noauth"
+          },
+          "item": [
+            {
+              "name": "List Templates",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/templates?page=1&limit=10",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["templates"],
+                  "query": [
+                    { "key": "page", "value": "1" },
+                    { "key": "limit", "value": "10" },
+                    { "key": "category", "value": "style-transfer", "disabled": true },
+                    { "key": "search", "value": "", "disabled": true },
+                    { "key": "type", "value": "VIDEO", "disabled": true }
+                  ]
+                },
+                "description": "List all active templates. Supports pagination, category filter, search, and type filter (IMAGE or VIDEO)."
+              },
+              "response": []
+            },
+            {
+              "name": "Get Template Categories",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/templates/categories",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["templates", "categories"]
+                },
+                "description": "Get all distinct template categories."
+              },
+              "response": []
+            },
+            {
+              "name": "Get Template by ID",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/templates/{{templateId}}",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["templates", "{{templateId}}"]
+                },
+                "description": "Get a single template by its ID."
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "Admin",
+          "description": "Admin template management. Requires ADMIN role.",
+          "item": [
+            {
+              "name": "Create Template",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"Anime Portrait\",\n  \"description\": \"Transform your photo into an anime-style portrait\",\n  \"category\": \"style-transfer\",\n  \"promptTemplate\": \"Transform this photo into a high-quality anime portrait. Use clean linework, vibrant colors, and anime-style eyes and features while maintaining the subject likeness.\",\n  \"providerKey\": \"gemini\",\n  \"creditCost\": 1,\n  \"sortOrder\": 10\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/templates",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["templates"]
+                },
+                "description": "Create a new template. Slug is auto-generated from name if not provided."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "if (pm.response.code === 201) {",
+                      "  const res = pm.response.json();",
+                      "  if (res.data && res.data.id) {",
+                      "    pm.collectionVariables.set('templateId', res.data.id);",
+                      "  }",
+                      "}"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "Update Template",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"description\": \"Updated description for template\",\n  \"creditCost\": 2\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/templates/{{templateId}}",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["templates", "{{templateId}}"]
+                },
+                "description": "Update an existing template. All fields are optional."
+              },
+              "response": []
+            },
+            {
+              "name": "Delete Template",
+              "request": {
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/templates/{{templateId}}",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["templates", "{{templateId}}"]
+                },
+                "description": "Soft-delete a template (sets isActive=false)."
+              },
+              "response": []
+            },
+            {
+              "name": "Upload Thumbnail",
+              "request": {
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "formdata",
+                  "formdata": [
+                    {
+                      "key": "file",
+                      "type": "file",
+                      "src": "",
+                      "description": "Thumbnail image (JPEG, PNG, WebP, or HEIC/HEIF, max 10MB)"
+                    }
+                  ]
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/templates/{{templateId}}/thumbnail",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["templates", "{{templateId}}", "thumbnail"]
+                },
+                "description": "Upload or replace a template's thumbnail image. Accepts JPEG, PNG, WebP, or HEIC/HEIF. Image is optimized to 512x512 max and converted to WebP."
+              },
+              "response": []
+            },
+            {
+              "name": "Delete Thumbnail",
+              "request": {
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/templates/{{templateId}}/thumbnail",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["templates", "{{templateId}}", "thumbnail"]
+                },
+                "description": "Delete a template's thumbnail image."
+              },
+              "response": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Generations",
+      "description": "AI image and video generation endpoints. All requests require authentication.",
+      "item": [
+        {
+          "name": "Create Generation",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "file",
+                  "type": "file",
+                  "src": "",
+                  "description": "Image file to transform (JPEG, PNG, or WebP, max 5MB)"
+                },
+                {
+                  "key": "templateId",
+                  "value": "{{templateId}}",
+                  "type": "text",
+                  "description": "Template ID to apply"
+                },
+                {
+                  "key": "aiModelId",
+                  "value": "{{aiModelId}}",
+                  "type": "text",
+                  "description": "AI Model ID to use for generation"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/generations",
+              "host": ["{{baseUrl}}"],
+              "path": ["generations"]
+            },
+            "description": "Upload an image and apply a template transformation using AI. Deducts credits on success."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "  const res = pm.response.json();",
+                  "  if (res.data && res.data.id) {",
+                  "    pm.collectionVariables.set('generationId', res.data.id);",
+                  "  }",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "Create Video Generation",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "file",
+                  "type": "file",
+                  "src": "",
+                  "description": "Image file to animate (JPEG, PNG, or WebP, max 5MB)"
+                },
+                {
+                  "key": "templateId",
+                  "value": "{{templateId}}",
+                  "type": "text",
+                  "description": "Video template ID to apply"
+                },
+                {
+                  "key": "aiModelId",
+                  "value": "{{aiModelId}}",
+                  "type": "text",
+                  "description": "Video AI Model ID (e.g. Veo 3.1 Fast)"
+                },
+                {
+                  "key": "durationSeconds",
+                  "value": "4",
+                  "type": "text",
+                  "description": "Video duration: 4, 6, or 8 seconds"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/generations/video",
+              "host": ["{{baseUrl}}"],
+              "path": ["generations", "video"]
+            },
+            "description": "Upload an image and generate a video using AI. Returns 202 Accepted with status PROCESSING. Poll GET /generations/:id until status is COMPLETED. Credits are deducted upfront and refunded on failure."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 202) {",
+                  "  const res = pm.response.json();",
+                  "  if (res.data && res.data.id) {",
+                  "    pm.collectionVariables.set('generationId', res.data.id);",
+                  "  }",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "List Generations",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/generations?page=1&limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["generations"],
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "limit", "value": "10" },
+                { "key": "status", "value": "COMPLETED", "disabled": true },
+                { "key": "type", "value": "VIDEO", "disabled": true }
+              ]
+            },
+            "description": "List the current user's generations. Supports pagination, status filter, and type filter (IMAGE or VIDEO)."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Generation by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/generations/{{generationId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["generations", "{{generationId}}"]
+            },
+            "description": "Get details of a specific generation. Must be the owner."
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Generation",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/generations/{{generationId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["generations", "{{generationId}}"]
+            },
+            "description": "Delete a generation and its files. Refunds credits. Must be the owner."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "AI Models",
+      "description": "AI model management. Public endpoints for listing available models, admin endpoints for CRUD.",
+      "item": [
+        {
+          "name": "Public",
+          "description": "Public AI model endpoints. No authentication required.",
+          "auth": {
+            "type": "noauth"
+          },
+          "item": [
+            {
+              "name": "List AI Models",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/ai-models?page=1&limit=10",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["ai-models"],
+                  "query": [
+                    { "key": "page", "value": "1" },
+                    { "key": "limit", "value": "10" },
+                    { "key": "providerKey", "value": "gemini", "disabled": true },
+                    { "key": "type", "value": "VIDEO", "disabled": true }
+                  ]
+                },
+                "description": "List all active AI models. Supports pagination, providerKey filter, and type filter (IMAGE or VIDEO)."
+              },
+              "response": []
+            },
+            {
+              "name": "Get AI Model by ID",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/ai-models/{{aiModelId}}",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["ai-models", "{{aiModelId}}"]
+                },
+                "description": "Get details of a specific AI model."
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "Admin",
+          "description": "Admin AI model management. Requires ADMIN role.",
+          "item": [
+            {
+              "name": "List All AI Models (Admin)",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/ai-models/admin?page=1&limit=10",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["ai-models", "admin"],
+                  "query": [
+                    { "key": "page", "value": "1" },
+                    { "key": "limit", "value": "10" },
+                    { "key": "providerKey", "value": "gemini", "disabled": true },
+                    { "key": "type", "value": "VIDEO", "disabled": true }
+                  ]
+                },
+                "description": "List all AI models including inactive ones. Supports type filter (IMAGE or VIDEO). Requires ADMIN role."
+              },
+              "response": []
+            },
+            {
+              "name": "Create AI Model",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"providerKey\": \"gemini\",\n  \"modelId\": \"gemini-2.5-pro-preview\",\n  \"name\": \"Gemini 2.5 Pro\",\n  \"description\": \"High-quality image generation by Google Gemini Pro\",\n  \"creditCost\": 3,\n  \"sortOrder\": 2\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/ai-models",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["ai-models"]
+                },
+                "description": "Create a new AI model. providerKey must match a registered provider."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "if (pm.response.code === 201) {",
+                      "  const res = pm.response.json();",
+                      "  if (res.data && res.data.id) {",
+                      "    pm.collectionVariables.set('aiModelId', res.data.id);",
+                      "  }",
+                      "}"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "Update AI Model",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"description\": \"Updated description\",\n  \"creditCost\": 2\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/ai-models/{{aiModelId}}",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["ai-models", "{{aiModelId}}"]
+                },
+                "description": "Update an existing AI model. All fields are optional."
+              },
+              "response": []
+            },
+            {
+              "name": "Delete AI Model",
+              "request": {
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/ai-models/{{aiModelId}}",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["ai-models", "{{aiModelId}}"]
+                },
+                "description": "Soft-delete an AI model (sets isActive=false)."
+              },
+              "response": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Credits",
+      "description": "Credit balance and transaction management. All requests require authentication.",
+      "item": [
+        {
+          "name": "Get Balance",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/credits/balance",
+              "host": ["{{baseUrl}}"],
+              "path": ["credits", "balance"]
+            },
+            "description": "Get the current user's credit balance."
+          },
+          "response": []
+        },
+        {
+          "name": "List Transactions",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/credits/transactions?page=1&limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["credits", "transactions"],
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "limit", "value": "10" },
+                { "key": "type", "value": "USAGE", "disabled": true }
+              ]
+            },
+            "description": "List the current user's credit transactions. Supports pagination and type filter."
+          },
+          "response": []
+        },
+        {
+          "name": "Admin: Adjust Credits",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userId\": \"{{targetUserId}}\",\n  \"amount\": 10,\n  \"description\": \"Manual credit adjustment\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/credits/admin/adjust",
+              "host": ["{{baseUrl}}"],
+              "path": ["credits", "admin", "adjust"]
+            },
+            "description": "Admin: Adjust a user's credits. Positive amount adds credits, negative deducts. Requires ADMIN role."
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}
