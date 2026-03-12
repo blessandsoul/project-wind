@@ -36,7 +36,7 @@ function StepSection({
     <div
       role="group"
       aria-label={`Step ${step.step}: ${step.title}`}
-      className="relative flex min-h-dvh snap-start items-center"
+      className="relative flex py-16 md:min-h-dvh md:snap-start md:py-0 items-center"
     >
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section heading on first step only */}

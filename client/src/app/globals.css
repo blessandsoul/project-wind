@@ -100,11 +100,13 @@
 
 /* ── How It Works scroll-snap ── */
 
-html:has(.how-it-works-section) {
-  scroll-snap-type: y proximity;
+@media (min-width: 768px) {
+  html:has(.how-it-works-section) {
+    scroll-snap-type: y proximity;
+  }
 }
 
-@media (prefers-reduced-motion: reduce) {
+@media (min-width: 768px) and (prefers-reduced-motion: reduce) {
   html:has(.how-it-works-section) {
     scroll-snap-type: none;
   }
