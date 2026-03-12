@@ -179,9 +179,9 @@ export function HowItWorksClient(): React.ReactElement {
             <div
               key={step.step}
               className={cn(
-                'h-2 w-2 rounded-full transition-all duration-300',
+                'h-2 w-2 rounded-full motion-safe:transition-all motion-safe:duration-300',
                 activeStep === step.step
-                  ? 'scale-125 bg-primary'
+                  ? 'motion-safe:scale-125 bg-primary'
                   : 'bg-border',
               )}
             />

@@ -16,7 +16,7 @@ export function TemplateMock({ className }: { className?: string }): React.React
         <div
           key={i}
           className={cn(
-            'rounded-lg border border-border/50 bg-card p-2.5 transition-all duration-300',
+            'rounded-lg border border-border/50 bg-card p-2.5',
             card.selected && 'ring-2 ring-primary',
           )}
         >
