@@ -22,7 +22,7 @@ export function GenerateMock({ className }: { className?: string }): React.React
         {/* Download button */}
         <div className="absolute bottom-2 right-2 flex h-8 w-8 items-center justify-center rounded-md border border-border/50 bg-primary/10">
           {/* Down arrow abstraction */}
-          <div className="h-3 w-3 border-b-2 border-r-2 border-primary rotate-45 -translate-y-0.5" />
+          <div className="h-2.5 w-2.5 border-b-2 border-r-2 border-primary rotate-45 translate-y-[-3px]" />
         </div>
       </div>
     </div>
