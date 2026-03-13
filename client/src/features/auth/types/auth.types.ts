@@ -5,6 +5,7 @@ export interface IUser {
   lastName: string;
   role: UserRole;
   isActive: boolean;
+  emailVerified: boolean;
   avatarUrl: string | null;
   createdAt: string;
   updatedAt: string;
@@ -22,6 +23,10 @@ export interface IRegisterRequest {
   password: string;
   firstName: string;
   lastName: string;
+}
+
+export interface IGoogleAuthRequest {
+  accessToken: string;
 }
 
 export interface IAuthState {

@@ -62,6 +62,20 @@ const envSchema = z.object({
   // Get your key from: https://aistudio.google.com/apikey
   GEMINI_API_KEY: z.string().min(1, 'GEMINI_API_KEY is required'),
 
+  // --- Email (Resend) ---
+  RESEND_API_KEY: z.string().min(1, 'RESEND_API_KEY is required'),
+  RESEND_FROM_EMAIL: z.string().default('Project Wind <onboarding@resend.dev>'),
+  EMAIL_VERIFICATION_TOKEN_EXPIRY: z.string().default('24h'),
+
+  // --- Client URL ---
+  // Frontend URL used for building email verification links
+  CLIENT_URL: z.string().url().min(1, 'CLIENT_URL is required'),
+
+  // --- Server URL ---
+  // Public-facing server URL used in email links (verification, password reset)
+  // No trailing slash. e.g., http://localhost:8000
+  SERVER_URL: z.string().url().min(1, 'SERVER_URL is required'),
+
   // --- Credits ---
   // Number of free credits granted to new users on registration (0 = no bonus)
   INITIAL_FREE_CREDITS: z.coerce.number().int().min(0).default(5),

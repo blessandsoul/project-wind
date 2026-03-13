@@ -32,12 +32,43 @@ export async function findUserById(id: string) {
 
 export async function createUser(data: {
   email: string;
-  password: string;
+  password?: string;
   firstName: string;
   lastName: string;
+  emailVerified: boolean;
+  googleId?: string;
+  avatarUrl?: string | null;
 }) {
   return prisma.user.create({
     data,
+  });
+}
+
+export async function findUserByGoogleId(googleId: string) {
+  return prisma.user.findUnique({
+    where: { googleId, deletedAt: null },
+  });
+}
+
+export async function linkGoogleAccount(
+  userId: string,
+  googleId: string,
+  avatarUrl?: string | null,
+) {
+  return prisma.user.update({
+    where: { id: userId },
+    data: {
+      googleId,
+      emailVerified: true,
+      ...(avatarUrl && { avatarUrl }),
+    },
+  });
+}
+
+export async function setEmailVerified(userId: string): Promise<void> {
+  await prisma.user.update({
+    where: { id: userId },
+    data: { emailVerified: true },
   });
 }
 

@@ -4,6 +4,7 @@ import * as authRepo from '../auth.repo.js';
 import * as authLib from '@libs/auth.js';
 import { hashPassword, verifyPassword } from '@libs/password.js';
 import { ConflictError, UnauthorizedError, NotFoundError } from '@shared/errors/errors.js';
+import { verifyGoogleAccessToken } from '@libs/google.js';
 import { testUsers, testRefreshToken, resetMocks } from '@/test/setup.js';
 import { sessionRepository } from '../session.repo.js';
 
@@ -12,11 +13,21 @@ vi.mock('../auth.repo.js');
 vi.mock('@libs/auth.js');
 vi.mock('@libs/password.js');
 vi.mock('../session.repo.js');
+vi.mock('@libs/email.js', () => ({
+  sendVerificationEmail: vi.fn().mockResolvedValue(undefined),
+}));
+vi.mock('@libs/verification.js', () => ({
+  createVerificationToken: vi.fn().mockResolvedValue('mock-verification-token'),
+  getVerificationTokenUserId: vi.fn().mockResolvedValue(null),
+  isResendOnCooldown: vi.fn().mockResolvedValue(false),
+  setResendCooldown: vi.fn().mockResolvedValue(undefined),
+}));
 vi.mock('@modules/credits/credits.service.js', () => ({
   creditsService: {
     grantWelcomeBonus: vi.fn().mockResolvedValue(undefined),
   },
 }));
+vi.mock('@libs/google.js');
 
 describe('Auth Service', () => {
   beforeEach(() => {
@@ -63,6 +74,7 @@ describe('Auth Service', () => {
         password: hashedPassword,
         firstName: validRegisterInput.firstName,
         lastName: validRegisterInput.lastName,
+        emailVerified: false,
       });
       expect(authLib.signAccessToken).toHaveBeenCalledWith({
         userId: createdUser.id,
@@ -365,6 +377,173 @@ describe('Auth Service', () => {
       // Act & Assert
       await expect(authService.getCurrentUser('invalid-user-id')).rejects.toThrow(NotFoundError);
       await expect(authService.getCurrentUser('invalid-user-id')).rejects.toThrow('User not found');
+    });
+  });
+
+  describe('googleAuth', () => {
+    const mockGooglePayload = {
+      googleId: 'google-123',
+      email: 'googleuser@gmail.com',
+      firstName: 'Google',
+      lastName: 'User',
+      avatarUrl: 'https://lh3.googleusercontent.com/photo.jpg',
+      emailVerified: true,
+    };
+
+    const mockCredential = 'mock-google-id-token';
+
+    it('should create a new user when Google user does not exist', async () => {
+      // Arrange
+      const newUser = {
+        ...testUsers.validUser,
+        id: 'new-google-user-id',
+        email: mockGooglePayload.email,
+        password: null,
+        googleId: mockGooglePayload.googleId,
+        avatarUrl: mockGooglePayload.avatarUrl,
+        emailVerified: true,
+      };
+      const accessToken = 'mock-access-token';
+      const refreshToken = 'mock-refresh-token';
+      const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+
+      vi.mocked(verifyGoogleAccessToken).mockResolvedValue(mockGooglePayload);
+      vi.mocked(authRepo.findUserByGoogleId).mockResolvedValue(null);
+      vi.mocked(authRepo.findUserByEmail).mockResolvedValue(null);
+      vi.mocked(authRepo.findDeletedUserByEmail).mockResolvedValue(null);
+      vi.mocked(authRepo.createUser).mockResolvedValue(newUser);
+      vi.mocked(authLib.signAccessToken).mockReturnValue(accessToken);
+      vi.mocked(authLib.generateRefreshToken).mockReturnValue(refreshToken);
+      vi.mocked(authLib.getRefreshTokenExpiresAt).mockReturnValue(expiresAt);
+      vi.mocked(authRepo.createRefreshToken).mockResolvedValue(testRefreshToken);
+
+      // Act
+      const result = await authService.googleAuth(mockCredential);
+
+      // Assert
+      expect(verifyGoogleAccessToken).toHaveBeenCalledWith(mockCredential);
+      expect(authRepo.createUser).toHaveBeenCalledWith({
+        email: mockGooglePayload.email,
+        firstName: mockGooglePayload.firstName,
+        lastName: mockGooglePayload.lastName,
+        emailVerified: true,
+        googleId: mockGooglePayload.googleId,
+        avatarUrl: mockGooglePayload.avatarUrl,
+      });
+      expect(result.user).toEqual(expect.objectContaining({
+        email: mockGooglePayload.email,
+        emailVerified: true,
+      }));
+      expect(result.user).not.toHaveProperty('password');
+      expect(result.accessToken).toBe(accessToken);
+      expect(result.refreshToken).toBe(refreshToken);
+    });
+
+    it('should login existing Google user by googleId', async () => {
+      // Arrange
+      const existingGoogleUser = {
+        ...testUsers.validUser,
+        googleId: mockGooglePayload.googleId,
+        password: null,
+      };
+      const accessToken = 'mock-access-token';
+      const refreshToken = 'mock-refresh-token';
+      const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+
+      vi.mocked(verifyGoogleAccessToken).mockResolvedValue(mockGooglePayload);
+      vi.mocked(authRepo.findUserByGoogleId).mockResolvedValue(existingGoogleUser);
+      vi.mocked(authLib.signAccessToken).mockReturnValue(accessToken);
+      vi.mocked(authLib.generateRefreshToken).mockReturnValue(refreshToken);
+      vi.mocked(authLib.getRefreshTokenExpiresAt).mockReturnValue(expiresAt);
+      vi.mocked(authRepo.createRefreshToken).mockResolvedValue(testRefreshToken);
+
+      // Act
+      const result = await authService.googleAuth(mockCredential);
+
+      // Assert
+      expect(authRepo.findUserByGoogleId).toHaveBeenCalledWith(mockGooglePayload.googleId);
+      expect(authRepo.createUser).not.toHaveBeenCalled();
+      expect(result.accessToken).toBe(accessToken);
+    });
+
+    it('should link Google account to existing email/password user', async () => {
+      // Arrange
+      const existingUser = { ...testUsers.validUser, email: mockGooglePayload.email };
+      const linkedUser = { ...existingUser, googleId: mockGooglePayload.googleId, emailVerified: true };
+      const accessToken = 'mock-access-token';
+      const refreshToken = 'mock-refresh-token';
+      const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+
+      vi.mocked(verifyGoogleAccessToken).mockResolvedValue(mockGooglePayload);
+      vi.mocked(authRepo.findUserByGoogleId).mockResolvedValue(null);
+      vi.mocked(authRepo.findUserByEmail).mockResolvedValue(existingUser);
+      vi.mocked(authRepo.linkGoogleAccount).mockResolvedValue(linkedUser);
+      vi.mocked(authLib.signAccessToken).mockReturnValue(accessToken);
+      vi.mocked(authLib.generateRefreshToken).mockReturnValue(refreshToken);
+      vi.mocked(authLib.getRefreshTokenExpiresAt).mockReturnValue(expiresAt);
+      vi.mocked(authRepo.createRefreshToken).mockResolvedValue(testRefreshToken);
+
+      // Act
+      const result = await authService.googleAuth(mockCredential);
+
+      // Assert
+      expect(authRepo.linkGoogleAccount).toHaveBeenCalledWith(
+        existingUser.id,
+        mockGooglePayload.googleId,
+        mockGooglePayload.avatarUrl, // existing user has null avatar, so Google avatar is used
+      );
+      expect(result.user).toEqual(expect.objectContaining({
+        emailVerified: true,
+      }));
+      expect(authRepo.createUser).not.toHaveBeenCalled();
+    });
+
+    it('should throw UnauthorizedError if Google user account is disabled', async () => {
+      // Arrange
+      const disabledUser = {
+        ...testUsers.inactiveUser,
+        googleId: mockGooglePayload.googleId,
+      };
+
+      vi.mocked(verifyGoogleAccessToken).mockResolvedValue(mockGooglePayload);
+      vi.mocked(authRepo.findUserByGoogleId).mockResolvedValue(disabledUser);
+
+      // Act & Assert
+      await expect(authService.googleAuth(mockCredential)).rejects.toThrow(UnauthorizedError);
+      await expect(authService.googleAuth(mockCredential)).rejects.toThrow('Account is disabled');
+    });
+
+    it('should throw UnauthorizedError if Google token is invalid', async () => {
+      // Arrange
+      vi.mocked(verifyGoogleAccessToken).mockRejectedValue(
+        new UnauthorizedError('Google authentication failed', 'INVALID_GOOGLE_TOKEN'),
+      );
+
+      // Act & Assert
+      await expect(authService.googleAuth(mockCredential)).rejects.toThrow(UnauthorizedError);
+      await expect(authService.googleAuth(mockCredential)).rejects.toThrow('Google authentication failed');
+    });
+  });
+
+  describe('login - null password guard', () => {
+    it('should throw UnauthorizedError when Google-only user tries email/password login', async () => {
+      // Arrange
+      const googleOnlyUser = {
+        ...testUsers.validUser,
+        password: null,
+        googleId: 'google-123',
+      };
+
+      vi.mocked(authRepo.findUserByEmail).mockResolvedValue(googleOnlyUser);
+
+      // Act & Assert
+      await expect(
+        authService.login({ email: googleOnlyUser.email, password: 'Password123!' }),
+      ).rejects.toThrow(UnauthorizedError);
+      await expect(
+        authService.login({ email: googleOnlyUser.email, password: 'Password123!' }),
+      ).rejects.toThrow('Invalid email or password');
+      expect(verifyPassword).not.toHaveBeenCalled();
     });
   });
 });

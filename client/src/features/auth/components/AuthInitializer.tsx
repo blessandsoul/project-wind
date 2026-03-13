@@ -40,7 +40,13 @@ export const AuthInitializer = ({ children }: AuthInitializerProps): React.React
     authService
       .getMe()
       .then((user) => {
-        if (!cancelled) dispatch(setUser(user));
+        if (cancelled) return;
+        dispatch(setUser(user));
+
+        // Unverified users cannot access protected pages
+        if (!user.emailVerified) {
+          router.push(ROUTES.VERIFY_EMAIL);
+        }
       })
       .catch((error) => {
         if (cancelled) return;

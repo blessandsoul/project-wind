@@ -17,40 +17,43 @@ export const TRUST_METRICS: TrustMetric[] = [
   { value: '4.9/5', label: 'Average rating' },
 ];
 
-// ─── How It Works ────────────────────────────────────────────
+// ─── Feature Highlights (Facetune-style value props) ────────
 
-export interface HowItWorksStep {
-  step: number;
-  label: string;
-  title: string;
+export interface FeatureSection {
+  id: string;
+  heading: string;
   description: string;
-  contentSide: 'left' | 'right';
+  image: string;
 }
 
-export const HOW_IT_WORKS_STEPS: HowItWorksStep[] = [
+export const FEATURE_SECTIONS: FeatureSection[] = [
   {
-    step: 1,
-    label: 'STEP 01',
-    title: 'Pick a template',
+    id: 'social-media',
+    heading: 'Stand out on social media',
     description:
-      'Browse our curated library of AI templates for portraits, landscapes, product shots, and more.',
-    contentSide: 'left',
+      'The go-to platform for influencers, creators, and anyone who wants to keep their content on Instagram or any social platform fresh and interesting. Keep your feed as dynamic and varied as your life — generate new styles and experiment with every post.',
+    image: '/test-imgs/image-1.jpg',
   },
   {
-    step: 2,
-    label: 'STEP 02',
-    title: 'Configure your vision',
+    id: 'creative-tool',
+    heading: 'Your creative tool, for every skill level',
     description:
-      'Write a prompt, adjust style parameters, and choose your output format. Full creative control.',
-    contentSide: 'right',
+      'Built for everyone, beginner or pro. Our intuitive AI tools make it easy to generate any image or video — a perfect fit for anyone\'s creative journey.',
+    image: '/test-imgs/image-3.jpg',
   },
   {
-    step: 3,
-    label: 'STEP 03',
-    title: 'Generate and download',
+    id: 'all-features',
+    heading: 'All the features you need, right at your fingertips',
     description:
-      'AI creates your content in seconds. Download in high resolution, ready for social media or print.',
-    contentSide: 'left',
+      'From quick generations to complete creative overhauls, prompt refinement to style transfers — discover AI features for every need. Designed to help you create faster, think bigger, and never run out of inspiration.',
+    image: '/test-imgs/image-5.jpg',
+  },
+  {
+    id: 'lifestyle-companion',
+    heading: 'Your lifestyle companion anytime, anywhere',
+    description:
+      'Product launch, social campaign, or personal project — our platform moves with you. Generate content on the go, capturing ideas as they happen. It fits seamlessly into your workflow, keeping your content pipeline moving.',
+    image: '/test-imgs/image-9.jpg',
   },
 ];
 

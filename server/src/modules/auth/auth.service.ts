@@ -1,14 +1,28 @@
 import { signAccessToken, generateRefreshToken, getRefreshTokenExpiresAt } from '@libs/auth.js';
 import { hashPassword, verifyPassword } from '@libs/password.js';
+import { sendVerificationEmail, sendPasswordResetEmail } from '@libs/email.js';
+import {
+  createVerificationToken,
+  getVerificationTokenUserId,
+  isResendOnCooldown,
+  setResendCooldown,
+  createPasswordResetToken,
+  getPasswordResetTokenUserId,
+  isPasswordResetOnCooldown,
+  setPasswordResetCooldown,
+} from '@libs/verification.js';
 import {
   ConflictError,
   UnauthorizedError,
   NotFoundError,
+  BadRequestError,
 } from '@shared/errors/errors.js';
 import type { UserRole } from '@shared/types/index.js';
+import { logger } from '@libs/logger.js';
 import { creditsService } from '@modules/credits/credits.service.js';
 import * as authRepo from './auth.repo.js';
 import { sessionRepository } from './session.repo.js';
+import { verifyGoogleAccessToken } from '@libs/google.js';
 import type { RegisterInput, LoginInput } from './auth.schemas.js';
 
 // Account lockout configuration
@@ -35,6 +49,7 @@ interface SanitizedUser {
   avatarUrl: string | null;
   role: UserRole;
   isActive: boolean;
+  emailVerified: boolean;
   createdAt: string;
   updatedAt: string;
 }
@@ -53,6 +68,7 @@ function sanitizeUser(user: {
   avatarUrl?: string | null;
   role: UserRole;
   isActive: boolean;
+  emailVerified: boolean;
   createdAt: Date;
   updatedAt: Date;
 }): SanitizedUser {
@@ -64,6 +80,7 @@ function sanitizeUser(user: {
     avatarUrl: user.avatarUrl ?? null,
     role: user.role,
     isActive: user.isActive,
+    emailVerified: user.emailVerified,
     createdAt: user.createdAt.toISOString(),
     updatedAt: user.updatedAt.toISOString(),
   };
@@ -95,10 +112,18 @@ export async function register(
     password: hashedPassword,
     firstName: input.firstName,
     lastName: input.lastName,
+    emailVerified: false,
   });
 
   // Grant welcome bonus credits to new users
   await creditsService.grantWelcomeBonus(user.id);
+
+  // Send verification email (fire-and-forget — don't block registration)
+  createVerificationToken(user.id)
+    .then((token) => sendVerificationEmail(user.email, token, user.firstName))
+    .catch((err) => {
+      logger.error({ err, userId: user.id }, 'Failed to send verification email during registration');
+    });
 
   const accessToken = signAccessToken({
     userId: user.id,
@@ -141,6 +166,11 @@ export async function login(
       throw new UnauthorizedError('Invalid email or password', 'INVALID_CREDENTIALS');
     }
 
+    // Google-only users have no password — can't restore via email/password login
+    if (!deletedUser.password) {
+      throw new UnauthorizedError('Invalid email or password', 'INVALID_CREDENTIALS');
+    }
+
     // Verify password before restoring — don't restore on wrong password
     const validPassword = await verifyPassword(input.password, deletedUser.password);
     if (!validPassword) {
@@ -160,6 +190,11 @@ export async function login(
 
     // Check account lockout
     if (user.lockedUntil && user.lockedUntil > new Date()) {
+      throw new UnauthorizedError('Invalid email or password', 'INVALID_CREDENTIALS');
+    }
+
+    // Google-only users have no password — can't login via email/password
+    if (!user.password) {
       throw new UnauthorizedError('Invalid email or password', 'INVALID_CREDENTIALS');
     }
 
@@ -309,4 +344,162 @@ export async function logoutAllSessions(userId: string): Promise<number> {
   const sessionCount = await sessionRepository.deleteAllUserSessions(userId);
   await authRepo.deleteRefreshTokensByUserId(userId);
   return sessionCount;
+}
+
+export async function verifyEmail(token: string): Promise<SanitizedUser> {
+  const userId = await getVerificationTokenUserId(token);
+  if (!userId) {
+    throw new BadRequestError('Invalid or expired verification token', 'INVALID_VERIFICATION_TOKEN');
+  }
+
+  const user = await authRepo.findUserById(userId);
+  if (!user) {
+    throw new NotFoundError('User not found', 'USER_NOT_FOUND');
+  }
+
+  // Idempotent — if already verified, just return the user
+  if (user.emailVerified) {
+    return sanitizeUser(user);
+  }
+
+  await authRepo.setEmailVerified(userId);
+
+  return sanitizeUser({ ...user, emailVerified: true });
+}
+
+export async function resendVerificationEmail(userId: string): Promise<void> {
+  const user = await authRepo.findUserById(userId);
+  if (!user) {
+    throw new NotFoundError('User not found', 'USER_NOT_FOUND');
+  }
+
+  if (user.emailVerified) {
+    throw new BadRequestError('Email already verified', 'ALREADY_VERIFIED');
+  }
+
+  const onCooldown = await isResendOnCooldown(userId);
+  if (onCooldown) {
+    throw new BadRequestError('Please wait before requesting another verification email', 'RESEND_COOLDOWN');
+  }
+
+  const token = await createVerificationToken(userId);
+  await setResendCooldown(userId);
+  await sendVerificationEmail(user.email, token, user.firstName);
+}
+
+export async function requestPasswordReset(email: string): Promise<void> {
+  // Always return success to prevent email enumeration
+  const user = await authRepo.findUserByEmail(email);
+  if (!user) return;
+
+  const onCooldown = await isPasswordResetOnCooldown(email);
+  if (onCooldown) return;
+
+  const token = await createPasswordResetToken(user.id);
+  await setPasswordResetCooldown(email);
+  await sendPasswordResetEmail(user.email, token, user.firstName);
+}
+
+export async function resetPassword(token: string, newPassword: string): Promise<void> {
+  const userId = await getPasswordResetTokenUserId(token);
+  if (!userId) {
+    throw new BadRequestError('Invalid or expired reset token', 'INVALID_RESET_TOKEN');
+  }
+
+  const user = await authRepo.findUserById(userId);
+  if (!user) {
+    throw new NotFoundError('User not found', 'USER_NOT_FOUND');
+  }
+
+  const hashedPassword = await hashPassword(newPassword);
+  await authRepo.updateUserPassword(userId, hashedPassword);
+
+  // Invalidate all sessions so user must log in with new password
+  await sessionRepository.deleteAllUserSessions(userId);
+  await authRepo.deleteRefreshTokensByUserId(userId);
+}
+
+export async function googleAuth(
+  credential: string,
+  deviceInfo?: string,
+  ipAddress?: string,
+): Promise<AuthResult> {
+  const googleUser = await verifyGoogleAccessToken(credential);
+
+  // Fast path: returning Google user (lookup by googleId)
+  let user = await authRepo.findUserByGoogleId(googleUser.googleId);
+
+  if (!user) {
+    // Check if an active user exists with the same email (account linking)
+    const existingUser = await authRepo.findUserByEmail(googleUser.email);
+
+    if (existingUser) {
+      if (!existingUser.isActive) {
+        throw new UnauthorizedError('Account is disabled', 'INVALID_CREDENTIALS');
+      }
+
+      // Link Google account — don't overwrite existing avatar
+      user = await authRepo.linkGoogleAccount(
+        existingUser.id,
+        googleUser.googleId,
+        existingUser.avatarUrl ? undefined : googleUser.avatarUrl,
+      );
+    } else {
+      // Check for soft-deleted account with this email
+      const deletedUser = await authRepo.findDeletedUserByEmail(googleUser.email);
+
+      if (deletedUser) {
+        // Restore and link
+        await authRepo.restoreUser(deletedUser.id);
+        user = await authRepo.linkGoogleAccount(
+          deletedUser.id,
+          googleUser.googleId,
+          deletedUser.avatarUrl ? undefined : googleUser.avatarUrl,
+        );
+      } else {
+        // Brand new user — create without password
+        user = await authRepo.createUser({
+          email: googleUser.email,
+          firstName: googleUser.firstName || 'User',
+          lastName: googleUser.lastName || '',
+          emailVerified: true,
+          googleId: googleUser.googleId,
+          avatarUrl: googleUser.avatarUrl,
+        });
+
+        await creditsService.grantWelcomeBonus(user.id);
+      }
+    }
+  } else {
+    // User found by googleId — check active status
+    if (!user.isActive) {
+      throw new UnauthorizedError('Account is disabled', 'INVALID_CREDENTIALS');
+    }
+  }
+
+  const accessToken = signAccessToken({
+    userId: user.id,
+    role: user.role,
+  });
+  const refreshToken = generateRefreshToken();
+  const refreshTokenExpiresAt = getRefreshTokenExpiresAt();
+
+  await authRepo.createRefreshToken({
+    token: refreshToken,
+    userId: user.id,
+    expiresAt: refreshTokenExpiresAt,
+  });
+
+  await sessionRepository.createSession({
+    userId: user.id,
+    deviceInfo,
+    ipAddress,
+    expiresAt: refreshTokenExpiresAt,
+  });
+
+  return {
+    user: sanitizeUser(user),
+    accessToken,
+    refreshToken,
+  };
 }

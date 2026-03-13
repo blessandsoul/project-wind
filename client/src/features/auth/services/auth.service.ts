@@ -2,7 +2,7 @@ import { apiClient } from '@/lib/api/axios.config';
 import { API_ENDPOINTS } from '@/lib/constants/api-endpoints';
 
 import type { ApiResponse } from '@/lib/api/api.types';
-import type { IUser, ILoginRequest, IRegisterRequest } from '../types/auth.types';
+import type { IUser, ILoginRequest, IRegisterRequest, IGoogleAuthRequest } from '../types/auth.types';
 
 interface AuthResponse {
   user: IUser;
@@ -40,12 +40,24 @@ class AuthService {
     await apiClient.post(API_ENDPOINTS.AUTH.VERIFY_EMAIL, { token });
   }
 
+  async resendVerification(): Promise<void> {
+    await apiClient.post(API_ENDPOINTS.AUTH.RESEND_VERIFICATION);
+  }
+
   async requestPasswordReset(email: string): Promise<void> {
     await apiClient.post(API_ENDPOINTS.AUTH.REQUEST_PASSWORD_RESET, { email });
   }
 
   async resetPassword(token: string, newPassword: string): Promise<void> {
     await apiClient.post(API_ENDPOINTS.AUTH.RESET_PASSWORD, { token, newPassword });
+  }
+
+  async googleAuth(data: IGoogleAuthRequest): Promise<AuthResponse> {
+    const response = await apiClient.post<ApiResponse<AuthResponse>>(
+      API_ENDPOINTS.AUTH.GOOGLE,
+      data
+    );
+    return response.data.data;
   }
 }
 

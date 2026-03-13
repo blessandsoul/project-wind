@@ -1,5 +1,5 @@
 import type { FastifyInstance } from 'fastify';
-import { authenticate, authorize } from '@libs/auth.js';
+import { authenticate, authorize, requireVerifiedEmail } from '@libs/auth.js';
 import { RATE_LIMITS } from '@config/rate-limit.config.js';
 import { creditsController } from './credits.controller.js';
 import { getTransactionsQuerySchema, adminAdjustSchema } from './credits.schemas.js';
@@ -12,7 +12,7 @@ export async function creditRoutes(fastify: FastifyInstance): Promise<void> {
    * Auth: Required
    */
   fastify.get('/credits/balance', {
-    preValidation: [authenticate],
+    preValidation: [authenticate, requireVerifiedEmail],
     config: {
       rateLimit: RATE_LIMITS.CREDITS_BALANCE,
     },
@@ -27,7 +27,7 @@ export async function creditRoutes(fastify: FastifyInstance): Promise<void> {
    * Query: { page?, limit?, type? }
    */
   fastify.get('/credits/transactions', {
-    preValidation: [authenticate],
+    preValidation: [authenticate, requireVerifiedEmail],
     schema: {
       querystring: getTransactionsQuerySchema,
     },
@@ -45,7 +45,7 @@ export async function creditRoutes(fastify: FastifyInstance): Promise<void> {
    * Body: { userId, amount, description }
    */
   fastify.post('/credits/admin/adjust', {
-    preValidation: [authenticate, authorize('ADMIN')],
+    preValidation: [authenticate, requireVerifiedEmail, authorize('ADMIN')],
     schema: {
       body: adminAdjustSchema,
     },

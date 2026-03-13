@@ -1,11 +1,12 @@
 import type { FastifyInstance } from 'fastify';
-import { authenticate, authorize } from '@libs/auth.js';
+import { authenticate, authorize, requireVerifiedEmail } from '@libs/auth.js';
 import { RATE_LIMITS } from '@config/rate-limit.config.js';
 import * as adminController from './admin.controller.js';
 
 export async function adminRoutes(fastify: FastifyInstance): Promise<void> {
   // All admin routes require authentication + ADMIN role
   fastify.addHook('preValidation', authenticate);
+  fastify.addHook('preValidation', requireVerifiedEmail);
   fastify.addHook('preValidation', authorize('ADMIN'));
 
   /**

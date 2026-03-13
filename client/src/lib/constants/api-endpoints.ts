@@ -9,6 +9,7 @@ export const API_ENDPOINTS = {
     RESEND_VERIFICATION: '/auth/resend-verification',
     REQUEST_PASSWORD_RESET: '/auth/request-password-reset',
     RESET_PASSWORD: '/auth/reset-password',
+    GOOGLE: '/auth/google',
   },
   USERS: {
     ME: '/users/me',

@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Theme Comparison — Project Wind</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+    background: #0a0a0a;
+    color: #e5e5e5;
+    padding: 32px 24px;
+    line-height: 1.5;
+  }
+  h1 {
+    text-align: center;
+    font-size: 24px;
+    font-weight: 600;
+    margin-bottom: 8px;
+    color: #fff;
+  }
+  .subtitle {
+    text-align: center;
+    color: #888;
+    font-size: 14px;
+    margin-bottom: 40px;
+  }
+  .grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+  .theme-card {
+    border-radius: 16px;
+    overflow: hidden;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: 2px solid transparent;
+    position: relative;
+  }
+  .theme-card:hover {
+    transform: translateY(-4px);
+  }
+  .theme-card.selected {
+    border-color: #fff;
+    box-shadow: 0 0 30px rgba(255,255,255,0.15);
+  }
+  .theme-card.selected::after {
+    content: "SELECTED";
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    background: #fff;
+    color: #000;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 4px 10px;
+    border-radius: 6px;
+    letter-spacing: 0.5px;
+  }
+
+  /* Dark mode previews */
+  .preview-dark {
+    padding: 24px;
+    min-height: 280px;
+  }
+  .preview-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 20px;
+  }
+  .preview-logo {
+    font-weight: 700;
+    font-size: 15px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .logo-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+  }
+  .preview-nav {
+    display: flex;
+    gap: 16px;
+    font-size: 12px;
+    opacity: 0.6;
+  }
+  .preview-hero {
+    margin-bottom: 20px;
+  }
+  .preview-hero h2 {
+    font-size: 20px;
+    font-weight: 700;
+    margin-bottom: 6px;
+    line-height: 1.2;
+  }
+  .preview-hero p {
+    font-size: 12px;
+    opacity: 0.5;
+    margin-bottom: 14px;
+  }
+  .preview-btn {
+    display: inline-block;
+    padding: 8px 20px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 600;
+    margin-right: 8px;
+  }
+  .preview-btn-secondary {
+    display: inline-block;
+    padding: 8px 20px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 600;
+    border: 1px solid rgba(255,255,255,0.15);
+    color: rgba(255,255,255,0.7);
+  }
+  .preview-cards {
+    display: flex;
+    gap: 10px;
+  }
+  .preview-card-item {
+    flex: 1;
+    border-radius: 10px;
+    padding: 14px;
+    font-size: 11px;
+  }
+  .preview-card-item .card-icon {
+    width: 28px;
+    height: 28px;
+    border-radius: 7px;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+  }
+  .preview-card-item h4 {
+    font-weight: 600;
+    font-size: 12px;
+    margin-bottom: 3px;
+  }
+  .preview-card-item p {
+    opacity: 0.5;
+    font-size: 10px;
+  }
+
+  /* Theme label */
+  .theme-label {
+    padding: 16px 24px;
+    background: #111;
+    border-top: 1px solid rgba(255,255,255,0.06);
+  }
+  .theme-label h3 {
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 2px;
+    color: #fff;
+  }
+  .theme-label p {
+    font-size: 12px;
+    color: #666;
+  }
+
+  /* ---- Electric Purple ---- */
+  .ep .preview-dark { background: oklch(0.14 0.015 285); color: oklch(0.93 0.01 285); }
+  .ep .logo-dot { background: oklch(0.68 0.25 285); }
+  .ep .preview-hero h2 { color: oklch(0.95 0.01 285); }
+  .ep .preview-btn { background: oklch(0.68 0.25 285); color: oklch(0.14 0.015 285); }
+  .ep .preview-card-item { background: oklch(0.19 0.018 285); border: 1px solid oklch(1 0.01 285 / 10%); color: oklch(0.93 0.01 285); }
+  .ep .card-icon { background: oklch(0.68 0.25 285 / 15%); color: oklch(0.68 0.25 285); }
+
+  /* ---- Electric Blue ---- */
+  .eb .preview-dark { background: oklch(0.14 0.012 250); color: oklch(0.93 0.008 250); }
+  .eb .logo-dot { background: oklch(0.65 0.22 250); }
+  .eb .preview-hero h2 { color: oklch(0.95 0.008 250); }
+  .eb .preview-btn { background: oklch(0.65 0.22 250); color: oklch(0.14 0.012 250); }
+  .eb .preview-card-item { background: oklch(0.19 0.015 250); border: 1px solid oklch(1 0.008 250 / 10%); color: oklch(0.93 0.008 250); }
+  .eb .card-icon { background: oklch(0.65 0.22 250 / 15%); color: oklch(0.65 0.22 250); }
+
+  /* ---- Cyan Teal ---- */
+  .ct .preview-dark { background: oklch(0.13 0.015 200); color: oklch(0.93 0.01 195); }
+  .ct .logo-dot { background: oklch(0.72 0.15 195); }
+  .ct .preview-hero h2 { color: oklch(0.95 0.01 195); }
+  .ct .preview-btn { background: oklch(0.72 0.15 195); color: oklch(0.13 0.015 200); }
+  .ct .preview-card-item { background: oklch(0.18 0.018 200); border: 1px solid oklch(1 0.01 195 / 10%); color: oklch(0.93 0.01 195); }
+  .ct .card-icon { background: oklch(0.72 0.15 195 / 15%); color: oklch(0.72 0.15 195); }
+
+  /* ---- Violet Indigo ---- */
+  .vi .preview-dark { background: oklch(0.13 0.018 295); color: oklch(0.93 0.01 295); }
+  .vi .logo-dot { background: oklch(0.65 0.24 295); }
+  .vi .preview-hero h2 { color: oklch(0.95 0.01 295); }
+  .vi .preview-btn { background: oklch(0.65 0.24 295); color: oklch(0.13 0.018 295); }
+  .vi .preview-card-item { background: oklch(0.18 0.02 295); border: 1px solid oklch(1 0.01 295 / 10%); color: oklch(0.93 0.01 295); }
+  .vi .card-icon { background: oklch(0.65 0.24 295 / 15%); color: oklch(0.65 0.24 295); }
+</style>
+</head>
+<body>
+  <h1>Pick Your Theme</h1>
+  <p class="subtitle">Click to select — showing dark mode previews (your primary mode). Swap with one import line.</p>
+
+  <div class="grid">
+    <!-- Electric Purple -->
+    <div class="theme-card ep" onclick="selectTheme(this, 'electric-purple')">
+      <div class="preview-dark">
+        <div class="preview-header">
+          <div class="preview-logo"><div class="logo-dot"></div> WindAI</div>
+          <div class="preview-nav"><span>Templates</span><span>Generate</span><span>Credits</span></div>
+        </div>
+        <div class="preview-hero">
+          <h2>Create stunning AI<br>content in seconds</h2>
+          <p>Choose a template, describe your vision, let AI do the rest.</p>
+          <span class="preview-btn">Get Started</span>
+          <span class="preview-btn-secondary">View Gallery</span>
+        </div>
+        <div class="preview-cards">
+          <div class="preview-card-item">
+            <div class="card-icon">&#9733;</div>
+            <h4>Templates</h4>
+            <p>50+ AI templates</p>
+          </div>
+          <div class="preview-card-item">
+            <div class="card-icon">&#9889;</div>
+            <h4>Generate</h4>
+            <p>Image & video</p>
+          </div>
+          <div class="preview-card-item">
+            <div class="card-icon">&#9670;</div>
+            <h4>Credits</h4>
+            <p>Pay as you go</p>
+          </div>
+        </div>
+      </div>
+      <div class="theme-label">
+        <h3>Electric Purple</h3>
+        <p>Bold, creative, AI-native — Midjourney vibes</p>
+      </div>
+    </div>
+
+    <!-- Electric Blue -->
+    <div class="theme-card eb" onclick="selectTheme(this, 'electric-blue')">
+      <div class="preview-dark">
+        <div class="preview-header">
+          <div class="preview-logo"><div class="logo-dot"></div> WindAI</div>
+          <div class="preview-nav"><span>Templates</span><span>Generate</span><span>Credits</span></div>
+        </div>
+        <div class="preview-hero">
+          <h2>Create stunning AI<br>content in seconds</h2>
+          <p>Choose a template, describe your vision, let AI do the rest.</p>
+          <span class="preview-btn">Get Started</span>
+          <span class="preview-btn-secondary">View Gallery</span>
+        </div>
+        <div class="preview-cards">
+          <div class="preview-card-item">
+            <div class="card-icon">&#9733;</div>
+            <h4>Templates</h4>
+            <p>50+ AI templates</p>
+          </div>
+          <div class="preview-card-item">
+            <div class="card-icon">&#9889;</div>
+            <h4>Generate</h4>
+            <p>Image & video</p>
+          </div>
+          <div class="preview-card-item">
+            <div class="card-icon">&#9670;</div>
+            <h4>Credits</h4>
+            <p>Pay as you go</p>
+          </div>
+        </div>
+      </div>
+      <div class="theme-label">
+        <h3>Electric Blue</h3>
+        <p>Professional, trustworthy — Linear / Vercel vibes</p>
+      </div>
+    </div>
+
+    <!-- Cyan Teal -->
+    <div class="theme-card ct" onclick="selectTheme(this, 'cyan-teal')">
+      <div class="preview-dark">
+        <div class="preview-header">
+          <div class="preview-logo"><div class="logo-dot"></div> WindAI</div>
+          <div class="preview-nav"><span>Templates</span><span>Generate</span><span>Credits</span></div>
+        </div>
+        <div class="preview-hero">
+          <h2>Create stunning AI<br>content in seconds</h2>
+          <p>Choose a template, describe your vision, let AI do the rest.</p>
+          <span class="preview-btn">Get Started</span>
+          <span class="preview-btn-secondary">View Gallery</span>
+        </div>
+        <div class="preview-cards">
+          <div class="preview-card-item">
+            <div class="card-icon">&#9733;</div>
+            <h4>Templates</h4>
+            <p>50+ AI templates</p>
+          </div>
+          <div class="preview-card-item">
+            <div class="card-icon">&#9889;</div>
+            <h4>Generate</h4>
+            <p>Image & video</p>
+          </div>
+          <div class="preview-card-item">
+            <div class="card-icon">&#9670;</div>
+            <h4>Credits</h4>
+            <p>Pay as you go</p>
+          </div>
+        </div>
+      </div>
+      <div class="theme-label">
+        <h3>Cyan / Teal</h3>
+        <p>Fresh, futuristic, distinctive — Runway vibes</p>
+      </div>
+    </div>
+
+    <!-- Violet Indigo -->
+    <div class="theme-card vi" onclick="selectTheme(this, 'violet-indigo')">
+      <div class="preview-dark">
+        <div class="preview-header">
+          <div class="preview-logo"><div class="logo-dot"></div> WindAI</div>
+          <div class="preview-nav"><span>Templates</span><span>Generate</span><span>Credits</span></div>
+        </div>
+        <div class="preview-hero">
+          <h2>Create stunning AI<br>content in seconds</h2>
+          <p>Choose a template, describe your vision, let AI do the rest.</p>
+          <span class="preview-btn">Get Started</span>
+          <span class="preview-btn-secondary">View Gallery</span>
+        </div>
+        <div class="preview-cards">
+          <div class="preview-card-item">
+            <div class="card-icon">&#9733;</div>
+            <h4>Templates</h4>
+            <p>50+ AI templates</p>
+          </div>
+          <div class="preview-card-item">
+            <div class="card-icon">&#9889;</div>
+            <h4>Generate</h4>
+            <p>Image & video</p>
+          </div>
+          <div class="preview-card-item">
+            <div class="card-icon">&#9670;</div>
+            <h4>Credits</h4>
+            <p>Pay as you go</p>
+          </div>
+        </div>
+      </div>
+      <div class="theme-label">
+        <h3>Violet / Indigo</h3>
+        <p>Premium, sophisticated — OpenAI vibes</p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function selectTheme(el, name) {
+      document.querySelectorAll('.theme-card').forEach(c => c.classList.remove('selected'));
+      el.classList.add('selected');
+      // Record selection
+      fetch('/.events', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({type:'click', choice: name, text: 'Theme: ' + name, timestamp: Date.now()})
+      }).catch(() => {});
+    }
+  </script>
+</body>
+</html>

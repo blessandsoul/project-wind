@@ -63,12 +63,14 @@ export async function authenticate(
   // Verify user still exists, is active, and not soft-deleted
   const user = await prisma.user.findUnique({
     where: { id: request.user.userId },
-    select: { isActive: true, deletedAt: true },
+    select: { isActive: true, deletedAt: true, emailVerified: true },
   });
 
   if (!user || !user.isActive || user.deletedAt) {
     throw new UnauthorizedError('Account is deactivated or deleted');
   }
+
+  request.emailVerified = user.emailVerified;
 }
 
 export async function optionalAuth(
@@ -79,6 +81,15 @@ export async function optionalAuth(
     await request.jwtVerify();
   } catch {
     // Not authenticated — that's okay for optional auth
+  }
+}
+
+export async function requireVerifiedEmail(
+  request: FastifyRequest,
+  _reply: FastifyReply,
+): Promise<void> {
+  if (!request.emailVerified) {
+    throw new ForbiddenError('Email verification required', 'EMAIL_NOT_VERIFIED');
   }
 }
 

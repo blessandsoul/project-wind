@@ -20,9 +20,11 @@ interface UseAuthReturn {
   isInitializing: boolean;
   login: (data: ILoginRequest) => void;
   register: (data: IRegisterRequest) => void;
+  googleAuth: (accessToken: string) => void;
   logout: () => Promise<void>;
   isLoggingIn: boolean;
   isRegistering: boolean;
+  isGoogleAuthPending: boolean;
   isLoggingOut: boolean;
 }
 
@@ -36,6 +38,12 @@ export const useAuth = (): UseAuthReturn => {
     mutationFn: (data: ILoginRequest) => authService.login(data),
     onSuccess: (data) => {
       dispatch(setUser(data.user));
+
+      if (!data.user.emailVerified) {
+        router.push(ROUTES.VERIFY_EMAIL);
+        return;
+      }
+
       toast.success('Signed in successfully');
       const from = searchParams.get('from');
       const redirectTo = from && from.startsWith('/') && !from.startsWith('//') ? from : ROUTES.DASHBOARD;
@@ -50,8 +58,22 @@ export const useAuth = (): UseAuthReturn => {
     mutationFn: (data: IRegisterRequest) => authService.register(data),
     onSuccess: (data) => {
       dispatch(setUser(data.user));
-      toast.success('Account created successfully');
-      router.push(ROUTES.DASHBOARD);
+      toast.success('Account created! Check your email to verify.');
+      router.push(ROUTES.VERIFY_EMAIL);
+    },
+    onError: (error) => {
+      toast.error(getErrorMessage(error));
+    },
+  });
+
+  const googleAuthMutation = useMutation({
+    mutationFn: (accessToken: string) => authService.googleAuth({ accessToken }),
+    onSuccess: (data) => {
+      dispatch(setUser(data.user));
+      toast.success('Signed in with Google');
+      const from = searchParams.get('from');
+      const redirectTo = from && from.startsWith('/') && !from.startsWith('//') ? from : ROUTES.DASHBOARD;
+      router.push(redirectTo);
     },
     onError: (error) => {
       toast.error(getErrorMessage(error));
@@ -76,9 +98,11 @@ export const useAuth = (): UseAuthReturn => {
     isInitializing,
     login: loginMutation.mutate,
     register: registerMutation.mutate,
+    googleAuth: googleAuthMutation.mutate,
     logout,
     isLoggingIn: loginMutation.isPending,
     isRegistering: registerMutation.isPending,
+    isGoogleAuthPending: googleAuthMutation.isPending,
     isLoggingOut,
   };
 };

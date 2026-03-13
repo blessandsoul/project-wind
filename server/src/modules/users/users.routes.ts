@@ -13,7 +13,7 @@ import {
   ChangePasswordSchema,
   DeleteAccountSchema,
 } from './users.schemas.js';
-import { authenticate, resolveMe, resolveTargetUser } from '@libs/auth.js';
+import { authenticate, requireVerifiedEmail, resolveMe, resolveTargetUser } from '@libs/auth.js';
 import { RATE_LIMITS } from '@config/rate-limit.config.js';
 
 /**
@@ -48,7 +48,7 @@ export async function usersRoutes(fastify: FastifyInstance): Promise<void> {
   fastify.patch(
     '/users/me',
     {
-      preValidation: [authenticate, resolveMe],
+      preValidation: [authenticate, requireVerifiedEmail, resolveMe],
       schema: {
         body: UpdateProfileSchema,
       },
@@ -70,7 +70,7 @@ export async function usersRoutes(fastify: FastifyInstance): Promise<void> {
   fastify.patch(
     '/users/me/password',
     {
-      preValidation: [authenticate, resolveMe],
+      preValidation: [authenticate, requireVerifiedEmail, resolveMe],
       schema: {
         body: ChangePasswordSchema,
       },
@@ -92,7 +92,7 @@ export async function usersRoutes(fastify: FastifyInstance): Promise<void> {
   fastify.delete(
     '/users/me',
     {
-      preValidation: [authenticate, resolveMe],
+      preValidation: [authenticate, requireVerifiedEmail, resolveMe],
       schema: {
         body: DeleteAccountSchema,
       },
@@ -117,7 +117,7 @@ export async function usersRoutes(fastify: FastifyInstance): Promise<void> {
   fastify.post(
     '/users/avatar',
     {
-      preValidation: [authenticate, resolveMe],
+      preValidation: [authenticate, requireVerifiedEmail, resolveMe],
       config: {
         rateLimit: RATE_LIMITS.USERS_UPLOAD_AVATAR,
       },
@@ -135,7 +135,7 @@ export async function usersRoutes(fastify: FastifyInstance): Promise<void> {
   fastify.delete(
     '/users/avatar',
     {
-      preValidation: [authenticate, resolveMe],
+      preValidation: [authenticate, requireVerifiedEmail, resolveMe],
       config: {
         rateLimit: RATE_LIMITS.USERS_DELETE_AVATAR,
       },
@@ -176,7 +176,7 @@ export async function usersRoutes(fastify: FastifyInstance): Promise<void> {
   fastify.patch(
     '/users/:userId',
     {
-      preValidation: [authenticate, resolveTargetUser],
+      preValidation: [authenticate, requireVerifiedEmail, resolveTargetUser],
       schema: {
         params: UserIdParamSchema,
         body: UpdateProfileSchema,
@@ -200,7 +200,7 @@ export async function usersRoutes(fastify: FastifyInstance): Promise<void> {
   fastify.patch(
     '/users/:userId/password',
     {
-      preValidation: [authenticate, resolveTargetUser],
+      preValidation: [authenticate, requireVerifiedEmail, resolveTargetUser],
       schema: {
         params: UserIdParamSchema,
       },
@@ -223,7 +223,7 @@ export async function usersRoutes(fastify: FastifyInstance): Promise<void> {
   fastify.delete(
     '/users/:userId',
     {
-      preValidation: [authenticate, resolveTargetUser],
+      preValidation: [authenticate, requireVerifiedEmail, resolveTargetUser],
       schema: {
         params: UserIdParamSchema,
       },
@@ -246,7 +246,7 @@ export async function usersRoutes(fastify: FastifyInstance): Promise<void> {
   fastify.post(
     '/users/:userId/avatar',
     {
-      preValidation: [authenticate, resolveTargetUser],
+      preValidation: [authenticate, requireVerifiedEmail, resolveTargetUser],
       schema: {
         params: UserIdParamSchema,
       },
@@ -267,7 +267,7 @@ export async function usersRoutes(fastify: FastifyInstance): Promise<void> {
   fastify.delete(
     '/users/:userId/avatar',
     {
-      preValidation: [authenticate, resolveTargetUser],
+      preValidation: [authenticate, requireVerifiedEmail, resolveTargetUser],
       schema: {
         params: UserIdParamSchema,
       },

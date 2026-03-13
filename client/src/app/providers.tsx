@@ -5,6 +5,7 @@ import { useState } from 'react';
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Provider as ReduxProvider } from 'react-redux';
+import { GoogleOAuthProvider } from '@react-oauth/google';
 import { ThemeProvider } from 'next-themes';
 import { Toaster } from 'sonner';
 
@@ -26,15 +27,19 @@ export function Providers({ children }: { children: React.ReactNode }): React.Re
       })
   );
 
+  const googleClientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || '';
+
   return (
     <ReduxProvider store={store}>
       <QueryClientProvider client={queryClient}>
-        <ThemeProvider attribute="class" defaultTheme="dark" disableTransitionOnChange>
-          <AuthInitializer>
-            {children}
-          </AuthInitializer>
-          <Toaster position="top-right" richColors />
-        </ThemeProvider>
+        <GoogleOAuthProvider clientId={googleClientId}>
+          <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
+            <AuthInitializer>
+              {children}
+            </AuthInitializer>
+            <Toaster position="top-right" richColors />
+          </ThemeProvider>
+        </GoogleOAuthProvider>
       </QueryClientProvider>
     </ReduxProvider>
   );

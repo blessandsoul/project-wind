@@ -1,5 +1,5 @@
 import type { FastifyInstance } from 'fastify';
-import { authenticate } from '@libs/auth.js';
+import { authenticate, requireVerifiedEmail } from '@libs/auth.js';
 import { RATE_LIMITS } from '@config/rate-limit.config.js';
 import { generationsController } from './generations.controller.js';
 import { listGenerationsQuerySchema, generationIdParamSchema } from './generations.schemas.js';
@@ -14,7 +14,7 @@ export async function generationRoutes(fastify: FastifyInstance): Promise<void> 
    * Body: { file: File, templateId: string, aiModelId: string }
    */
   fastify.post('/generations', {
-    preValidation: [authenticate],
+    preValidation: [authenticate, requireVerifiedEmail],
     config: {
       rateLimit: RATE_LIMITS.GENERATIONS_CREATE,
     },
@@ -31,7 +31,7 @@ export async function generationRoutes(fastify: FastifyInstance): Promise<void> 
    * Returns: 202 Accepted with PROCESSING generation
    */
   fastify.post('/generations/video', {
-    preValidation: [authenticate],
+    preValidation: [authenticate, requireVerifiedEmail],
     config: {
       rateLimit: RATE_LIMITS.GENERATIONS_VIDEO_CREATE,
     },
@@ -46,7 +46,7 @@ export async function generationRoutes(fastify: FastifyInstance): Promise<void> 
    * Query: { page?, limit?, status? }
    */
   fastify.get('/generations', {
-    preValidation: [authenticate],
+    preValidation: [authenticate, requireVerifiedEmail],
     schema: {
       querystring: listGenerationsQuerySchema,
     },
@@ -63,7 +63,7 @@ export async function generationRoutes(fastify: FastifyInstance): Promise<void> 
    * Auth: Required (owner only)
    */
   fastify.get('/generations/:generationId', {
-    preValidation: [authenticate],
+    preValidation: [authenticate, requireVerifiedEmail],
     schema: {
       params: generationIdParamSchema,
     },
@@ -80,7 +80,7 @@ export async function generationRoutes(fastify: FastifyInstance): Promise<void> 
    * Auth: Required (owner only)
    */
   fastify.delete('/generations/:generationId', {
-    preValidation: [authenticate],
+    preValidation: [authenticate, requireVerifiedEmail],
     schema: {
       params: generationIdParamSchema,
     },

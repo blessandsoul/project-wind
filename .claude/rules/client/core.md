@@ -12,6 +12,7 @@
 | Choosing colors, styling, typography, spacing, motion | `04-design-system.md` |
 | Auth tokens, env vars, security headers | `05-security.md` |
 | UX psychology, cognitive load, a11y, performance | `06-ux-checklist.md` |
+| Visual direction, theme system, page patterns, aesthetic | `07-visual-identity.md` |
 
 ---
 

@@ -19,6 +19,7 @@ export const Header = (): React.ReactElement => {
   const { logout, isLoggingOut } = useAuth();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const menuToggleRef = useRef<HTMLButtonElement>(null);
+  const mobileMenuRef = useRef<HTMLDivElement>(null);
 
   const toggleTheme = useCallback((): void => {
     setTheme(theme === 'dark' ? 'light' : 'dark');
@@ -33,7 +34,7 @@ export const Header = (): React.ReactElement => {
     setIsMobileMenuOpen((prev) => !prev);
   }, []);
 
-  // Close mobile menu on Escape key
+  // Close mobile menu on Escape key or outside click
   useEffect(() => {
     if (!isMobileMenuOpen) return;
 
@@ -43,13 +44,29 @@ export const Header = (): React.ReactElement => {
       }
     };
 
+    const handleClickOutside = (e: MouseEvent): void => {
+      const target = e.target as Node;
+      if (
+        mobileMenuRef.current &&
+        !mobileMenuRef.current.contains(target) &&
+        menuToggleRef.current &&
+        !menuToggleRef.current.contains(target)
+      ) {
+        closeMobileMenu();
+      }
+    };
+
     document.addEventListener('keydown', handleKeyDown);
-    return () => document.removeEventListener('keydown', handleKeyDown);
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
   }, [isMobileMenuOpen, closeMobileMenu]);
 
   return (
     <header className="sticky top-0 z-50 border-b border-border/50 bg-background/80 backdrop-blur-md">
-      <div className="container mx-auto flex h-16 items-center justify-between px-4 md:px-6 lg:px-8">
+      <div className="relative z-10 container mx-auto flex h-16 items-center justify-between bg-background/80 px-4 backdrop-blur-md md:px-6 lg:px-8">
         <Link
           href={ROUTES.HOME}
           className="text-xl font-bold tracking-tight transition-colors duration-150 hover:text-primary"
@@ -117,57 +134,61 @@ export const Header = (): React.ReactElement => {
             aria-label={isMobileMenuOpen ? 'Close menu' : 'Open menu'}
             aria-expanded={isMobileMenuOpen}
             aria-controls="mobile-menu"
-            className="h-9 w-9"
+            className="relative h-9 w-9"
           >
-            {isMobileMenuOpen ? (
-              <X className="h-5 w-5" />
-            ) : (
-              <Menu className="h-5 w-5" />
-            )}
+            <Menu className={`absolute h-5 w-5 transition-all duration-300 ${isMobileMenuOpen ? 'rotate-90 scale-0 opacity-0' : 'rotate-0 scale-100 opacity-100'}`} />
+            <X className={`absolute h-5 w-5 transition-all duration-300 ${isMobileMenuOpen ? 'rotate-0 scale-100 opacity-100' : '-rotate-90 scale-0 opacity-0'}`} />
           </Button>
         </div>
       </div>
 
-      {isMobileMenuOpen && (
-        <div id="mobile-menu" className="border-t border-border/50 bg-background px-4 py-4 md:hidden">
-          <nav className="flex flex-col gap-2">
-            {isAuthenticated ? (
-              <>
-                <Button variant="ghost" className="w-full justify-start" asChild>
-                  <Link href={ROUTES.DASHBOARD} onClick={closeMobileMenu}>
-                    Dashboard
-                  </Link>
-                </Button>
-                <Button
-                  variant="ghost"
-                  className="w-full justify-start"
-                  disabled={isLoggingOut}
-                  onClick={() => {
-                    closeMobileMenu();
-                    logout();
-                  }}
-                >
-                  <LogOut className="mr-2 h-4 w-4" />
-                  Sign out
-                </Button>
-              </>
-            ) : (
-              <>
-                <Button variant="ghost" className="w-full justify-start" asChild>
-                  <Link href={ROUTES.LOGIN} onClick={closeMobileMenu}>
-                    Sign in
-                  </Link>
-                </Button>
-                <Button className="w-full" asChild>
-                  <Link href={ROUTES.REGISTER} onClick={closeMobileMenu}>
-                    Get started
-                  </Link>
-                </Button>
-              </>
-            )}
-          </nav>
-        </div>
-      )}
+      {/* Mobile menu panel — slides top-to-bottom */}
+      <div
+        ref={mobileMenuRef}
+        id="mobile-menu"
+        className={`absolute left-0 right-0 top-full z-[6] border-b border-border/50 bg-background shadow-xl transition-all duration-300 ease-out md:hidden ${
+          isMobileMenuOpen
+            ? 'translate-y-0 opacity-100'
+            : '-translate-y-full opacity-0 pointer-events-none'
+        }`}
+      >
+        <nav className="flex flex-col gap-1 px-4 py-4">
+          {isAuthenticated ? (
+            <>
+              <Button variant="ghost" className="h-12 w-full justify-start text-base" asChild>
+                <Link href={ROUTES.DASHBOARD} onClick={closeMobileMenu}>
+                  Dashboard
+                </Link>
+              </Button>
+              <Button
+                variant="ghost"
+                className="h-12 w-full justify-start text-base"
+                disabled={isLoggingOut}
+                onClick={() => {
+                  closeMobileMenu();
+                  logout();
+                }}
+              >
+                <LogOut className="mr-2 h-4 w-4" />
+                Sign out
+              </Button>
+            </>
+          ) : (
+            <>
+              <Button variant="ghost" className="h-12 w-full justify-start text-base" asChild>
+                <Link href={ROUTES.LOGIN} onClick={closeMobileMenu}>
+                  Sign in
+                </Link>
+              </Button>
+              <Button className="h-12 w-full text-base" asChild>
+                <Link href={ROUTES.REGISTER} onClick={closeMobileMenu}>
+                  Get started
+                </Link>
+              </Button>
+            </>
+          )}
+        </nav>
+      </div>
     </header>
   );
 };

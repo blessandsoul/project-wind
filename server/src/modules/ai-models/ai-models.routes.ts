@@ -1,5 +1,5 @@
 import type { FastifyInstance } from 'fastify';
-import { authenticate, authorize } from '@libs/auth.js';
+import { authenticate, authorize, requireVerifiedEmail } from '@libs/auth.js';
 import { RATE_LIMITS } from '@config/rate-limit.config.js';
 import { aiModelsController } from './ai-models.controller.js';
 import {
@@ -55,7 +55,7 @@ export async function aiModelRoutes(fastify: FastifyInstance): Promise<void> {
    * Query: { page?, limit?, providerKey? }
    */
   fastify.get('/ai-models/admin', {
-    preValidation: [authenticate, authorize('ADMIN')],
+    preValidation: [authenticate, requireVerifiedEmail, authorize('ADMIN')],
     schema: {
       querystring: listAiModelsQuerySchema,
     },
@@ -73,7 +73,7 @@ export async function aiModelRoutes(fastify: FastifyInstance): Promise<void> {
    * Body: { providerKey, modelId, name, description?, creditCost?, isActive?, sortOrder? }
    */
   fastify.post('/ai-models', {
-    preValidation: [authenticate, authorize('ADMIN')],
+    preValidation: [authenticate, requireVerifiedEmail, authorize('ADMIN')],
     schema: {
       body: createAiModelSchema,
     },
@@ -90,7 +90,7 @@ export async function aiModelRoutes(fastify: FastifyInstance): Promise<void> {
    * Auth: Required (ADMIN)
    */
   fastify.patch('/ai-models/:aiModelId', {
-    preValidation: [authenticate, authorize('ADMIN')],
+    preValidation: [authenticate, requireVerifiedEmail, authorize('ADMIN')],
     schema: {
       params: aiModelIdParamSchema,
       body: updateAiModelSchema,
@@ -108,7 +108,7 @@ export async function aiModelRoutes(fastify: FastifyInstance): Promise<void> {
    * Auth: Required (ADMIN)
    */
   fastify.delete('/ai-models/:aiModelId', {
-    preValidation: [authenticate, authorize('ADMIN')],
+    preValidation: [authenticate, requireVerifiedEmail, authorize('ADMIN')],
     schema: {
       params: aiModelIdParamSchema,
     },

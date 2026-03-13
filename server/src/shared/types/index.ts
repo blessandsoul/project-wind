@@ -20,6 +20,7 @@ declare module 'fastify' {
     startTime?: number; // Added for duration calculation
     targetUserId?: string;    // Set by resolveMe or resolveTargetUser middleware
     isAdminAction?: boolean;  // True when admin is acting on another user
+    emailVerified?: boolean;  // Set by authenticate middleware
   }
 }
 

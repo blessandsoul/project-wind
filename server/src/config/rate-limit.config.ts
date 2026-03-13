@@ -62,6 +62,26 @@ export const RATE_LIMITS = {
     max: applyMultiplier(10),
     timeWindow: '15 minutes',
   },
+  AUTH_VERIFY_EMAIL: {
+    max: applyMultiplier(10),
+    timeWindow: '15 minutes',
+  },
+  AUTH_RESEND_VERIFICATION: {
+    max: applyMultiplier(3),
+    timeWindow: '15 minutes',
+  },
+  AUTH_REQUEST_PASSWORD_RESET: {
+    max: applyMultiplier(5),
+    timeWindow: '1 hour',
+  },
+  AUTH_RESET_PASSWORD: {
+    max: applyMultiplier(5),
+    timeWindow: '15 minutes',
+  },
+  AUTH_GOOGLE: {
+    max: applyMultiplier(10),
+    timeWindow: '15 minutes',
+  },
 
   // Users — profile management
   USERS_UPDATE_PROFILE: {

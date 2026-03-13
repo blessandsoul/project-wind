@@ -1,5 +1,5 @@
 import type { FastifyInstance } from 'fastify';
-import { authenticate, authorize } from '@libs/auth.js';
+import { authenticate, authorize, requireVerifiedEmail } from '@libs/auth.js';
 import { RATE_LIMITS } from '@config/rate-limit.config.js';
 import { templatesController } from './templates.controller.js';
 import {
@@ -68,7 +68,7 @@ export async function templateRoutes(fastify: FastifyInstance): Promise<void> {
    * Body: { name, slug?, description?, category, promptTemplate, providerKey?, creditCost?, sortOrder? }
    */
   fastify.post('/templates', {
-    preValidation: [authenticate, authorize('ADMIN')],
+    preValidation: [authenticate, requireVerifiedEmail, authorize('ADMIN')],
     schema: {
       body: createTemplateSchema,
     },
@@ -85,7 +85,7 @@ export async function templateRoutes(fastify: FastifyInstance): Promise<void> {
    * Auth: Required (ADMIN)
    */
   fastify.patch('/templates/:templateId', {
-    preValidation: [authenticate, authorize('ADMIN')],
+    preValidation: [authenticate, requireVerifiedEmail, authorize('ADMIN')],
     schema: {
       params: templateIdParamSchema,
       body: updateTemplateSchema,
@@ -103,7 +103,7 @@ export async function templateRoutes(fastify: FastifyInstance): Promise<void> {
    * Auth: Required (ADMIN)
    */
   fastify.delete('/templates/:templateId', {
-    preValidation: [authenticate, authorize('ADMIN')],
+    preValidation: [authenticate, requireVerifiedEmail, authorize('ADMIN')],
     schema: {
       params: templateIdParamSchema,
     },
@@ -123,7 +123,7 @@ export async function templateRoutes(fastify: FastifyInstance): Promise<void> {
    * Body: multipart/form-data with image file
    */
   fastify.post('/templates/:templateId/thumbnail', {
-    preValidation: [authenticate, authorize('ADMIN')],
+    preValidation: [authenticate, requireVerifiedEmail, authorize('ADMIN')],
     schema: {
       params: templateIdParamSchema,
     },
@@ -140,7 +140,7 @@ export async function templateRoutes(fastify: FastifyInstance): Promise<void> {
    * Auth: Required (ADMIN)
    */
   fastify.delete('/templates/:templateId/thumbnail', {
-    preValidation: [authenticate, authorize('ADMIN')],
+    preValidation: [authenticate, requireVerifiedEmail, authorize('ADMIN')],
     schema: {
       params: templateIdParamSchema,
     },

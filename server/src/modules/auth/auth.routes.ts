@@ -5,6 +5,10 @@ import * as authController from './auth.controller.js';
 import {
   registerSchema,
   loginSchema,
+  verifyEmailSchema,
+  requestPasswordResetSchema,
+  resetPasswordSchema,
+  googleAuthSchema,
 } from './auth.schemas.js';
 
 export async function authRoutes(fastify: FastifyInstance): Promise<void> {
@@ -71,6 +75,59 @@ export async function authRoutes(fastify: FastifyInstance): Promise<void> {
       rateLimit: RATE_LIMITS.AUTH_LOGOUT_ALL,
     },
     handler: authController.logoutAllSessions,
+  });
+
+  // Verify email - public, token-based (no auth needed)
+  fastify.get('/auth/verify-email', {
+    schema: {
+      querystring: verifyEmailSchema,
+    },
+    config: {
+      rateLimit: RATE_LIMITS.AUTH_VERIFY_EMAIL,
+    },
+    handler: authController.verifyEmail,
+  });
+
+  // Resend verification email - authenticated, rate limited
+  fastify.post('/auth/resend-verification', {
+    preValidation: [authenticate],
+    config: {
+      rateLimit: RATE_LIMITS.AUTH_RESEND_VERIFICATION,
+    },
+    handler: authController.resendVerification,
+  });
+
+  // Request password reset - public, rate limited
+  fastify.post('/auth/request-password-reset', {
+    schema: {
+      body: requestPasswordResetSchema,
+    },
+    config: {
+      rateLimit: RATE_LIMITS.AUTH_REQUEST_PASSWORD_RESET,
+    },
+    handler: authController.requestPasswordReset,
+  });
+
+  // Google OAuth - verify ID token and login/register
+  fastify.post('/auth/google', {
+    schema: {
+      body: googleAuthSchema,
+    },
+    config: {
+      rateLimit: RATE_LIMITS.AUTH_GOOGLE,
+    },
+    handler: authController.googleAuth,
+  });
+
+  // Reset password - public, token-based
+  fastify.post('/auth/reset-password', {
+    schema: {
+      body: resetPasswordSchema,
+    },
+    config: {
+      rateLimit: RATE_LIMITS.AUTH_RESET_PASSWORD,
+    },
+    handler: authController.resetPassword,
   });
 
 }

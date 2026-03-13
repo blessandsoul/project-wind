@@ -34,12 +34,14 @@ enum CreditTransactionType {
 model User {
   id            String    @id @default(uuid())
   email         String    @unique
-  password      String
+  password      String?
   firstName     String
   lastName      String
   avatarUrl     String?   // SEO-friendly path: /uploads/users/{userId}/avatar/{firstName-lastName}-avatar.webp
+  googleId      String?   @unique
   role          UserRole  @default(USER)
   isActive      Boolean   @default(true)
+  emailVerified Boolean   @default(true)
   deletedAt     DateTime?
 
   // Account lockout
@@ -62,6 +64,7 @@ model User {
   @@index([isActive])       // For filtering active/inactive users
   @@index([deletedAt])      // For soft delete filtering
   @@index([email, isActive]) // Compound index for login queries
+  @@index([googleId])       // For Google OAuth login lookups
   @@map("users")
 }
 

@@ -12,6 +12,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useAuth } from '../hooks/useAuth';
+import { GoogleSignInButton } from './GoogleSignInButton';
 import { ROUTES } from '@/lib/constants/routes';
 import { cn } from '@/lib/utils';
 
@@ -65,7 +66,15 @@ export const LoginForm = (): React.ReactElement => {
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="password">Password</Label>
+          <div className="flex items-center justify-between">
+            <Label htmlFor="password">Password</Label>
+            <Link
+              href={ROUTES.RESET_PASSWORD}
+              className="text-xs text-muted-foreground transition-colors duration-150 hover:text-primary"
+            >
+              Forgot password?
+            </Link>
+          </div>
           <Input
             id="password"
             type="password"
@@ -92,6 +101,17 @@ export const LoginForm = (): React.ReactElement => {
           )}
         </Button>
       </form>
+
+      <div className="relative">
+        <div className="absolute inset-0 flex items-center">
+          <span className="w-full border-t border-border" />
+        </div>
+        <div className="relative flex justify-center text-xs uppercase">
+          <span className="bg-background px-2 text-muted-foreground">Or</span>
+        </div>
+      </div>
+
+      <GoogleSignInButton />
 
       <p className="text-center text-sm text-muted-foreground">
         Don&apos;t have an account?{' '}

@@ -1,13 +1,9 @@
 import type React from 'react';
 import type { Metadata } from 'next';
 
-import { cookies } from 'next/headers';
-import { redirect } from 'next/navigation';
-
 import { APP_NAME } from '@/lib/constants/app.constants';
-import { ROUTES } from '@/lib/constants/routes';
 import { Hero } from '@/features/landing/components/Hero';
-import { HowItWorks } from '@/features/landing/components/HowItWorks';
+import { FeatureHighlights } from '@/features/landing/components/FeatureHighlights';
 import { TemplateShowcase } from '@/features/landing/components/TemplateShowcase';
 import { PromptToResult } from '@/features/landing/components/PromptToResult';
 import { Testimonials } from '@/features/landing/components/Testimonials';
@@ -27,19 +23,12 @@ export const metadata: Metadata = {
   },
 };
 
-export default async function LandingPage(): Promise<React.ReactElement> {
-  const cookieStore = await cookies();
-  const hasSession = cookieStore.get('access_token');
-
-  if (hasSession) {
-    redirect(ROUTES.DASHBOARD);
-  }
-
+export default function LandingPage(): React.ReactElement {
   return (
     <>
       <Hero />
 
-      <HowItWorks />
+      <FeatureHighlights />
 
       <ScrollReveal>
         <TemplateShowcase />

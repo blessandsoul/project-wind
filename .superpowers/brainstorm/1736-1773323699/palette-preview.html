@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Your 5 Palettes — Project Wind</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+    background: #0a0a0a;
+    color: #e5e5e5;
+    padding: 24px;
+    line-height: 1.5;
+  }
+  h1 { text-align: center; font-size: 22px; font-weight: 600; color: #fff; margin-bottom: 4px; }
+  .subtitle { text-align: center; color: #666; font-size: 13px; margin-bottom: 32px; }
+  .grid { display: flex; flex-direction: column; gap: 20px; max-width: 900px; margin: 0 auto; }
+
+  .palette-row {
+    display: flex; gap: 16px; align-items: stretch;
+    border-radius: 14px; overflow: hidden;
+    border: 1px solid rgba(255,255,255,0.06);
+    background: #111;
+  }
+
+  /* Color dots column */
+  .palette-colors {
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    padding: 16px; gap: 6px; min-width: 48px;
+    background: rgba(255,255,255,0.02);
+  }
+  .dot { width: 18px; height: 18px; border-radius: 50%; }
+
+  /* Dark preview */
+  .preview {
+    flex: 1; padding: 20px; min-height: 160px;
+    display: flex; flex-direction: column; gap: 14px;
+  }
+  .preview-top {
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .preview-logo { font-weight: 700; font-size: 13px; display: flex; align-items: center; gap: 6px; }
+  .logo-icon { width: 7px; height: 7px; border-radius: 50%; }
+  .preview-nav { display: flex; gap: 14px; font-size: 11px; opacity: 0.5; }
+  .preview-hero h2 { font-size: 16px; font-weight: 700; line-height: 1.25; margin-bottom: 4px; }
+  .preview-hero p { font-size: 11px; opacity: 0.45; margin-bottom: 10px; }
+  .preview-btn {
+    display: inline-block; padding: 6px 16px; border-radius: 7px;
+    font-size: 11px; font-weight: 600; margin-right: 6px;
+  }
+  .preview-btn-ghost {
+    display: inline-block; padding: 6px 16px; border-radius: 7px;
+    font-size: 11px; font-weight: 500;
+    border: 1px solid rgba(255,255,255,0.12);
+    color: rgba(255,255,255,0.6);
+  }
+  .preview-cards { display: flex; gap: 8px; }
+  .mini-card {
+    flex: 1; border-radius: 8px; padding: 10px;
+    font-size: 10px;
+  }
+  .mini-card h4 { font-weight: 600; font-size: 11px; margin-bottom: 2px; }
+  .mini-card p { opacity: 0.45; }
+  .card-dot { width: 20px; height: 20px; border-radius: 5px; margin-bottom: 6px; display: flex; align-items: center; justify-content: center; font-size: 10px; }
+
+  /* Label */
+  .palette-label {
+    display: flex; flex-direction: column; justify-content: center;
+    padding: 16px 20px; min-width: 140px;
+    background: rgba(255,255,255,0.02);
+    border-left: 1px solid rgba(255,255,255,0.04);
+  }
+  .palette-label h3 { font-size: 14px; font-weight: 600; color: #fff; margin-bottom: 2px; }
+  .palette-label .num { font-size: 11px; color: #555; font-weight: 500; }
+  .palette-label .roles { font-size: 10px; color: #444; margin-top: 6px; line-height: 1.6; }
+  .role-tag { display: inline-block; padding: 1px 6px; border-radius: 4px; font-size: 9px; margin: 1px 2px; border: 1px solid rgba(255,255,255,0.08); }
+</style>
+</head>
+<body>
+<h1>Your 5 Palettes — Dark Mode Preview</h1>
+<p class="subtitle">This is how each palette looks as a dark studio UI. ThemeSwitcher is wired up — run the app and try live.</p>
+
+<div class="grid">
+
+  <!-- Palette 1: Coral Garden -->
+  <div class="palette-row">
+    <div class="palette-colors">
+      <div class="dot" style="background:#ee6055"></div>
+      <div class="dot" style="background:#60d394"></div>
+      <div class="dot" style="background:#aaf683"></div>
+      <div class="dot" style="background:#ffd97d"></div>
+      <div class="dot" style="background:#ff9b85"></div>
+    </div>
+    <div class="preview" style="background: oklch(0.14 0.015 155); color: oklch(0.93 0.01 155);">
+      <div class="preview-top">
+        <div class="preview-logo"><div class="logo-icon" style="background:#60d394"></div> WindAI</div>
+        <div class="preview-nav"><span>Templates</span><span>Generate</span><span>Credits</span></div>
+      </div>
+      <div class="preview-hero">
+        <h2>Create stunning AI content</h2>
+        <p>Pick a template, describe your vision, generate.</p>
+        <span class="preview-btn" style="background:#60d394; color: oklch(0.14 0.015 155);">Get Started</span>
+        <span class="preview-btn-ghost">Gallery</span>
+      </div>
+      <div class="preview-cards">
+        <div class="mini-card" style="background: oklch(0.19 0.018 155); border: 1px solid oklch(1 0.01 155 / 10%);">
+          <div class="card-dot" style="background: rgba(96,211,148,0.15); color: #60d394;">&#9733;</div>
+          <h4>Templates</h4><p>50+ ready</p>
+        </div>
+        <div class="mini-card" style="background: oklch(0.19 0.018 155); border: 1px solid oklch(1 0.01 155 / 10%);">
+          <div class="card-dot" style="background: rgba(255,217,125,0.15); color: #ffd97d;">&#9889;</div>
+          <h4>Generate</h4><p>Image & video</p>
+        </div>
+        <div class="mini-card" style="background: oklch(0.19 0.018 155); border: 1px solid oklch(1 0.01 155 / 10%);">
+          <div class="card-dot" style="background: rgba(238,96,85,0.15); color: #ee6055;">&#9670;</div>
+          <h4>Credits</h4><p>Pay as you go</p>
+        </div>
+      </div>
+    </div>
+    <div class="palette-label">
+      <div class="num">Palette 1</div>
+      <h3>Coral Garden</h3>
+      <div class="roles">
+        <span class="role-tag" style="color:#60d394; border-color: rgba(96,211,148,0.3);">primary</span>
+        <span class="role-tag" style="color:#ffd97d; border-color: rgba(255,217,125,0.3);">accent</span>
+        <span class="role-tag" style="color:#ee6055; border-color: rgba(238,96,85,0.3);">destructive</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Palette 2: Ocean Breeze -->
+  <div class="palette-row">
+    <div class="palette-colors">
+      <div class="dot" style="background:#ee6352"></div>
+      <div class="dot" style="background:#59cd90"></div>
+      <div class="dot" style="background:#3fa7d6"></div>
+      <div class="dot" style="background:#fac05e"></div>
+      <div class="dot" style="background:#f79d84"></div>
+    </div>
+    <div class="preview" style="background: oklch(0.14 0.012 230); color: oklch(0.93 0.008 230);">
+      <div class="preview-top">
+        <div class="preview-logo"><div class="logo-icon" style="background:#3fa7d6"></div> WindAI</div>
+        <div class="preview-nav"><span>Templates</span><span>Generate</span><span>Credits</span></div>
+      </div>
+      <div class="preview-hero">
+        <h2>Create stunning AI content</h2>
+        <p>Pick a template, describe your vision, generate.</p>
+        <span class="preview-btn" style="background:#3fa7d6; color: oklch(0.14 0.012 230);">Get Started</span>
+        <span class="preview-btn-ghost">Gallery</span>
+      </div>
+      <div class="preview-cards">
+        <div class="mini-card" style="background: oklch(0.19 0.015 230); border: 1px solid oklch(1 0.008 230 / 10%);">
+          <div class="card-dot" style="background: rgba(63,167,214,0.15); color: #3fa7d6;">&#9733;</div>
+          <h4>Templates</h4><p>50+ ready</p>
+        </div>
+        <div class="mini-card" style="background: oklch(0.19 0.015 230); border: 1px solid oklch(1 0.008 230 / 10%);">
+          <div class="card-dot" style="background: rgba(89,205,144,0.15); color: #59cd90;">&#9889;</div>
+          <h4>Generate</h4><p>Image & video</p>
+        </div>
+        <div class="mini-card" style="background: oklch(0.19 0.015 230); border: 1px solid oklch(1 0.008 230 / 10%);">
+          <div class="card-dot" style="background: rgba(250,192,94,0.15); color: #fac05e;">&#9670;</div>
+          <h4>Credits</h4><p>Pay as you go</p>
+        </div>
+      </div>
+    </div>
+    <div class="palette-label">
+      <div class="num">Palette 2</div>
+      <h3>Ocean Breeze</h3>
+      <div class="roles">
+        <span class="role-tag" style="color:#3fa7d6; border-color: rgba(63,167,214,0.3);">primary</span>
+        <span class="role-tag" style="color:#59cd90; border-color: rgba(89,205,144,0.3);">accent</span>
+        <span class="role-tag" style="color:#ee6352; border-color: rgba(238,99,82,0.3);">destructive</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Palette 3: Dusk Bloom -->
+  <div class="palette-row">
+    <div class="palette-colors">
+      <div class="dot" style="background:#fcecc9"></div>
+      <div class="dot" style="background:#fcb0b3"></div>
+      <div class="dot" style="background:#f93943"></div>
+      <div class="dot" style="background:#7eb2dd"></div>
+      <div class="dot" style="background:#445e93"></div>
+    </div>
+    <div class="preview" style="background: oklch(0.13 0.015 255); color: oklch(0.93 0.008 255);">
+      <div class="preview-top">
+        <div class="preview-logo"><div class="logo-icon" style="background:#445e93"></div> WindAI</div>
+        <div class="preview-nav"><span>Templates</span><span>Generate</span><span>Credits</span></div>
+      </div>
+      <div class="preview-hero">
+        <h2>Create stunning AI content</h2>
+        <p>Pick a template, describe your vision, generate.</p>
+        <span class="preview-btn" style="background:#7eb2dd; color: oklch(0.13 0.015 255);">Get Started</span>
+        <span class="preview-btn-ghost">Gallery</span>
+      </div>
+      <div class="preview-cards">
+        <div class="mini-card" style="background: oklch(0.18 0.018 255); border: 1px solid oklch(1 0.008 255 / 10%);">
+          <div class="card-dot" style="background: rgba(68,94,147,0.2); color: #7eb2dd;">&#9733;</div>
+          <h4>Templates</h4><p>50+ ready</p>
+        </div>
+        <div class="mini-card" style="background: oklch(0.18 0.018 255); border: 1px solid oklch(1 0.008 255 / 10%);">
+          <div class="card-dot" style="background: rgba(252,176,179,0.15); color: #fcb0b3;">&#9889;</div>
+          <h4>Generate</h4><p>Image & video</p>
+        </div>
+        <div class="mini-card" style="background: oklch(0.18 0.018 255); border: 1px solid oklch(1 0.008 255 / 10%);">
+          <div class="card-dot" style="background: rgba(252,236,201,0.12); color: #fcecc9;">&#9670;</div>
+          <h4>Credits</h4><p>Pay as you go</p>
+        </div>
+      </div>
+    </div>
+    <div class="palette-label">
+      <div class="num">Palette 3</div>
+      <h3>Dusk Bloom</h3>
+      <div class="roles">
+        <span class="role-tag" style="color:#445e93; border-color: rgba(68,94,147,0.3);">primary</span>
+        <span class="role-tag" style="color:#7eb2dd; border-color: rgba(126,178,221,0.3);">accent</span>
+        <span class="role-tag" style="color:#f93943; border-color: rgba(249,57,67,0.3);">destructive</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Palette 4: Neon Flora -->
+  <div class="palette-row">
+    <div class="palette-colors">
+      <div class="dot" style="background:#7ddf64"></div>
+      <div class="dot" style="background:#c0df85"></div>
+      <div class="dot" style="background:#deb986"></div>
+      <div class="dot" style="background:#db6c79"></div>
+      <div class="dot" style="background:#ed4d6e"></div>
+    </div>
+    <div class="preview" style="background: oklch(0.13 0.015 140); color: oklch(0.93 0.01 140);">
+      <div class="preview-top">
+        <div class="preview-logo"><div class="logo-icon" style="background:#7ddf64"></div> WindAI</div>
+        <div class="preview-nav"><span>Templates</span><span>Generate</span><span>Credits</span></div>
+      </div>
+      <div class="preview-hero">
+        <h2>Create stunning AI content</h2>
+        <p>Pick a template, describe your vision, generate.</p>
+        <span class="preview-btn" style="background:#7ddf64; color: oklch(0.13 0.015 140);">Get Started</span>
+        <span class="preview-btn-ghost">Gallery</span>
+      </div>
+      <div class="preview-cards">
+        <div class="mini-card" style="background: oklch(0.18 0.018 140); border: 1px solid oklch(1 0.01 140 / 10%);">
+          <div class="card-dot" style="background: rgba(125,223,100,0.15); color: #7ddf64;">&#9733;</div>
+          <h4>Templates</h4><p>50+ ready</p>
+        </div>
+        <div class="mini-card" style="background: oklch(0.18 0.018 140); border: 1px solid oklch(1 0.01 140 / 10%);">
+          <div class="card-dot" style="background: rgba(222,185,134,0.15); color: #deb986;">&#9889;</div>
+          <h4>Generate</h4><p>Image & video</p>
+        </div>
+        <div class="mini-card" style="background: oklch(0.18 0.018 140); border: 1px solid oklch(1 0.01 140 / 10%);">
+          <div class="card-dot" style="background: rgba(237,77,110,0.15); color: #ed4d6e;">&#9670;</div>
+          <h4>Credits</h4><p>Pay as you go</p>
+        </div>
+      </div>
+    </div>
+    <div class="palette-label">
+      <div class="num">Palette 4</div>
+      <h3>Neon Flora</h3>
+      <div class="roles">
+        <span class="role-tag" style="color:#7ddf64; border-color: rgba(125,223,100,0.3);">primary</span>
+        <span class="role-tag" style="color:#deb986; border-color: rgba(222,185,134,0.3);">accent</span>
+        <span class="role-tag" style="color:#ed4d6e; border-color: rgba(237,77,110,0.3);">destructive</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Palette 5: Royal Blaze -->
+  <div class="palette-row">
+    <div class="palette-colors">
+      <div class="dot" style="background:#421196"></div>
+      <div class="dot" style="background:#9529ff"></div>
+      <div class="dot" style="background:#ffc719"></div>
+      <div class="dot" style="background:#ff193b"></div>
+      <div class="dot" style="background:#b8001c"></div>
+    </div>
+    <div class="preview" style="background: oklch(0.12 0.02 295); color: oklch(0.93 0.01 295);">
+      <div class="preview-top">
+        <div class="preview-logo"><div class="logo-icon" style="background:#9529ff"></div> WindAI</div>
+        <div class="preview-nav"><span>Templates</span><span>Generate</span><span>Credits</span></div>
+      </div>
+      <div class="preview-hero">
+        <h2>Create stunning AI content</h2>
+        <p>Pick a template, describe your vision, generate.</p>
+        <span class="preview-btn" style="background:#9529ff; color: #fff;">Get Started</span>
+        <span class="preview-btn-ghost">Gallery</span>
+      </div>
+      <div class="preview-cards">
+        <div class="mini-card" style="background: oklch(0.17 0.025 295); border: 1px solid oklch(1 0.01 295 / 10%);">
+          <div class="card-dot" style="background: rgba(149,41,255,0.15); color: #9529ff;">&#9733;</div>
+          <h4>Templates</h4><p>50+ ready</p>
+        </div>
+        <div class="mini-card" style="background: oklch(0.17 0.025 295); border: 1px solid oklch(1 0.01 295 / 10%);">
+          <div class="card-dot" style="background: rgba(255,199,25,0.15); color: #ffc719;">&#9889;</div>
+          <h4>Generate</h4><p>Image & video</p>
+        </div>
+        <div class="mini-card" style="background: oklch(0.17 0.025 295); border: 1px solid oklch(1 0.01 295 / 10%);">
+          <div class="card-dot" style="background: rgba(255,25,59,0.15); color: #ff193b;">&#9670;</div>
+          <h4>Credits</h4><p>Pay as you go</p>
+        </div>
+      </div>
+    </div>
+    <div class="palette-label">
+      <div class="num">Palette 5</div>
+      <h3>Royal Blaze</h3>
+      <div class="roles">
+        <span class="role-tag" style="color:#9529ff; border-color: rgba(149,41,255,0.3);">primary</span>
+        <span class="role-tag" style="color:#ffc719; border-color: rgba(255,199,25,0.3);">accent</span>
+        <span class="role-tag" style="color:#ff193b; border-color: rgba(255,25,59,0.3);">destructive</span>
+      </div>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

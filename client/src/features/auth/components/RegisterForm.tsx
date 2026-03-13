@@ -12,6 +12,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useAuth } from '../hooks/useAuth';
+import { GoogleSignInButton } from './GoogleSignInButton';
 import { ROUTES } from '@/lib/constants/routes';
 import { cn } from '@/lib/utils';
 
@@ -163,6 +164,17 @@ export const RegisterForm = (): React.ReactElement => {
           )}
         </Button>
       </form>
+
+      <div className="relative">
+        <div className="absolute inset-0 flex items-center">
+          <span className="w-full border-t border-border" />
+        </div>
+        <div className="relative flex justify-center text-xs uppercase">
+          <span className="bg-background px-2 text-muted-foreground">Or</span>
+        </div>
+      </div>
+
+      <GoogleSignInButton />
 
       <p className="text-center text-sm text-muted-foreground">
         Already have an account?{' '}

@@ -9,6 +9,12 @@ process.env.JWT_ACCESS_EXPIRY = '15m';
 process.env.JWT_REFRESH_EXPIRY = '7d';
 process.env.PORT = '3000';
 process.env.HOST = '0.0.0.0';
+process.env.RESEND_API_KEY = 'test-resend-api-key';
+process.env.RESEND_FROM_EMAIL = 'Test <test@test.com>';
+process.env.EMAIL_VERIFICATION_TOKEN_EXPIRY = '24h';
+process.env.CLIENT_URL = 'http://localhost:3000';
+process.env.GEMINI_API_KEY = 'test-gemini-api-key';
+process.env.SERVER_URL = 'http://localhost:8000';
 
 // Test user data
 export const testUsers = {
@@ -19,8 +25,10 @@ export const testUsers = {
     firstName: 'Test',
     lastName: 'User',
     avatarUrl: null,
+    googleId: null,
     role: 'USER' as const,
     isActive: true,
+    emailVerified: true,
     creditBalance: 0,
     deletedAt: null,
     failedLoginAttempts: 0,
@@ -35,8 +43,10 @@ export const testUsers = {
     firstName: 'Inactive',
     lastName: 'User',
     avatarUrl: null,
+    googleId: null,
     role: 'USER' as const,
     isActive: false,
+    emailVerified: true,
     creditBalance: 0,
     deletedAt: null,
     failedLoginAttempts: 0,
@@ -51,8 +61,10 @@ export const testUsers = {
     firstName: 'Admin',
     lastName: 'User',
     avatarUrl: null,
+    googleId: null,
     role: 'ADMIN' as const,
     isActive: true,
+    emailVerified: true,
     creditBalance: 0,
     deletedAt: null,
     failedLoginAttempts: 0,
